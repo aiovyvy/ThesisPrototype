@@ -1,0 +1,61 @@
+{
+    "project": "AIOVY",
+    "notebook": "04_shap_explainability.ipynb",
+    "experiment": "Final RF evaluation and SHAP analysis",
+    "created_at_utc": "2026-10-14T11:15:16.577187+00:00",
+    "dataset": "maternal_aiovy_candidate_6039.csv",
+    "dataset_records": 6039,
+    "training_records": 4826,
+    "test_records": 1213,
+    "features": [
+        "age",
+        "systolic_bp",
+        "diastolic_bp",
+        "blood_glucose_mmol_l",
+        "body_temperature_c",
+        "heart_rate"
+    ],
+    "classes": [
+        "high risk",
+        "low risk",
+        "mid risk"
+    ],
+    "model": "Random Forest",
+    "selected_hyperparameters": {
+        "model__n_estimators": 100,
+        "model__min_samples_leaf": 1,
+        "model__max_depth": null,
+        "model__class_weight": null
+    },
+    "smote_used": false,
+    "split": {
+        "method": "GroupShuffleSplit",
+        "test_size": 0.2,
+        "random_state": 42,
+        "group_overlap": 0
+    },
+    "test_metrics": {
+        "accuracy": 0.9291014014839242,
+        "macro_f1": 0.9290476218928762,
+        "high_risk_recall": 0.8653366583541147
+    },
+    "shap": {
+        "sample_size": 200,
+        "stability_folds": 5,
+        "mean_pairwise_spearman": 0.8571428571428571,
+        "min_pairwise_spearman": 0.6,
+        "max_pairwise_spearman": 1.0
+    },
+    "versions": {
+        "shap": "0.52.0",
+        "scikit_learn": "1.9.1",
+        "xgboost": "3.4.1"
+    },
+    "limitations": [
+        "Clinical validity not established",
+        "Glucose source units require verification",
+        "Risk-label provenance requires verification",
+        "SMOTE methodology requires reconciliation",
+        "SHAP stability uses a fixed training reference sample"
+    ]
+}

@@ -1,0 +1,7 @@
+Feature,Mean Absolute SHAP
+systolic_bp,0.13088866947280822
+heart_rate,0.08880650441858914
+body_temperature_c,0.07909659662084156
+diastolic_bp,0.06747227736912151
+age,0.057080100334543665
+blood_glucose_mmol_l,0.0534325916231794

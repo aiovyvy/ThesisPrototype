@@ -14,3 +14,7 @@ android/local.properties
 ios/Pods/
 ios/.symlinks/
 ios/Flutter/Generated.xcconfig
+# ML datasets
+ml_model/data/raw/
+# Python virtual environment
+.venv/

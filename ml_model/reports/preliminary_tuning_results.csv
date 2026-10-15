@@ -1,0 +1,4 @@
+Model,Best CV High-Risk Recall,Best Parameters
+Logistic Regression,0.4636559561128527,"{'model__class_weight': 'balanced', 'model__C': 0.01}"
+Random Forest,0.8696669278996865,"{'model__n_estimators': 100, 'model__min_samples_leaf': 1, 'model__max_depth': None, 'model__class_weight': None}"
+XGBoost,0.8421140282131659,"{'model__subsample': 1.0, 'model__n_estimators': 300, 'model__max_depth': 3, 'model__learning_rate': 0.1, 'model__colsample_bytree': 1.0}"

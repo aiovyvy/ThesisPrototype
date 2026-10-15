@@ -1,0 +1,6 @@
+,Accuracy,Accuracy,Macro F1,Macro F1,High-Risk Recall,High-Risk Recall
+,mean,std,mean,std,mean,std
+Model,,,,,,
+Logistic Regression,0.5885,0.0093,0.5802,0.0098,0.4657,0.0208
+Random Forest,0.9219,0.0082,0.9215,0.0083,0.867,0.0182
+XGBoost,0.9204,0.0083,0.9199,0.0085,0.8525,0.0249
