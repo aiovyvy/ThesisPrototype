@@ -12,6 +12,12 @@ import '../models/risk_level.dart';
 import 'common.dart';
 import 'risk_badge.dart';
 
+/// Makes one value (e.g. "HR 82", "5.6 mmol/L") unbreakable: spaces become
+/// non-breaking and a word joiner follows each "/". Join such values with
+/// " · " so lines wrap only between values, never inside one.
+String keepTogether(String s) =>
+    s.replaceAll(' ', String.fromCharCode(0xA0)).replaceAll('/', '/${String.fromCharCode(0x2060)}');
+
 /// Rounded-square number tile tinted by the patient's current risk.
 class PatientNumberTile extends StatelessWidget {
   const PatientNumberTile({super.key, required this.patient, this.size = 44});
@@ -80,7 +86,7 @@ class PatientListRow extends StatelessWidget {
       '${patient.age} yrs',
       if (m != null) 'BP ${m.systolic}/${m.diastolic}',
       if (m != null) 'HR ${m.heartRate}',
-    ].join(' · ');
+    ].map(keepTogether).join(' · ');
 
     return Semantics(
       button: true,

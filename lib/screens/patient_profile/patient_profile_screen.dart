@@ -267,8 +267,11 @@ class _HistoryRow extends StatelessWidget {
     final a = assessment;
     final m = a.indicators;
     final level = a.result.riskLevel;
-    final vitals = 'BP ${m.systolic}/${m.diastolic} · HR ${m.heartRate} · '
-        'BG ${Fmt.glucose(m.bloodGlucose, settings.glucoseUnit)} ${settings.glucoseUnit.label}';
+    final vitals = [
+      'BP ${m.systolic}/${m.diastolic}',
+      'HR ${m.heartRate}',
+      'BG ${Fmt.glucose(m.bloodGlucose, settings.glucoseUnit)} ${settings.glucoseUnit.label}',
+    ].map(keepTogether).join(' · ');
     final prev = previous?.result.riskLevel;
     return Semantics(
       button: true,
@@ -314,8 +317,6 @@ class _HistoryRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '${a.type} · ${a.assessedBy}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
                     ),
                   ],

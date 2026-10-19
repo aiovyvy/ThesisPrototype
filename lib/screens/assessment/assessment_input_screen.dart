@@ -87,6 +87,12 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
     _ctrl[Indicator.heartRate]!.text = '${m.heartRate}';
   }
 
+  /// "today", "yesterday" or "Oct 2, 2026", for use mid-sentence.
+  static String _when(DateTime t) {
+    final s = Fmt.relative(t, withTime: false);
+    return s == 'Today' || s == 'Yesterday' ? s.toLowerCase() : s;
+  }
+
   bool get _hasEdits => Indicator.values.any((i) => _ctrl[i]!.text != (_initial[i] ?? ''));
 
   bool get _hasAnyValue => _ctrl.values.any((c) => c.text.trim().isNotEmpty);
@@ -253,7 +259,7 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
                         InfoNote(
                           icon: Icons.history,
                           title: 'Copied from the last visit',
-                          text: 'These values are from ${Fmt.relative(_prefilledFrom!, withTime: false)}. '
+                          text: 'These values are from ${_when(_prefilledFrom!)}. '
                               'Measure again and update each one before assessing.',
                           background: AppColors.riskModerateTint,
                           iconColor: AppColors.riskModerateText,

@@ -24,6 +24,7 @@ import 'package:aiovy/services/risk_classifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'helpers/test_app.dart';
 
@@ -58,6 +59,9 @@ Future<void> _render(
   await tester.pumpWidget(
     testApp(screen, repository: repository, classifier: classifier, settings: settings, boundaryKey: _boundary),
   );
+  // Wait for google_fonts to register each weight (async) so no frame uses the
+  // test placeholder font.
+  await tester.runAsync(GoogleFonts.pendingFonts);
   if (settle) {
     await tester.pumpAndSettle();
   } else {

@@ -115,7 +115,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
               width: 96,
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: FittedBox(fit: BoxFit.scaleDown, child: AiovyWordmark(height: 28)),
+                // The full wordmark would be scaled down past legibility here.
+                child: AiovyLogoMark(size: 32),
               ),
             ),
             Expanded(child: _title(TextAlign.center)),

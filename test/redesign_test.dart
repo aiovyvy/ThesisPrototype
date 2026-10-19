@@ -15,6 +15,7 @@ import 'package:aiovy/screens/shap/shap_screen.dart';
 import 'package:aiovy/screens/splash/splash_screen.dart';
 import 'package:aiovy/services/risk_classifier.dart';
 import 'package:aiovy/widgets/explanation_widgets.dart';
+import 'package:aiovy/widgets/patient_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -163,6 +164,18 @@ void main() {
     expect(find.text('Model: Random Forest (UCI)'), findsOneWidget);
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('history shows the glucose unit intact', (tester) async {
+    setScreen(tester, const Size(360, 780));
+    await tester.pumpWidget(testApp(const PatientProfileScreen(patientId: 'P-0014')));
+    await tester.pumpAndSettle();
+    // Each value is kept on one line (non-breaking space, word joiner after
+    // "/"), and no escape code leaks into the visible text.
+    expect(find.textContaining(keepTogether('BG 5.6 mmol/L')), findsOneWidget);
+    final nbsp = String.fromCharCode(0xA0), joiner = String.fromCharCode(0x2060);
+    expect(keepTogether('BG 5.6 mmol/L'), 'BG${nbsp}5.6${nbsp}mmol/${joiner}L');
+    expect(find.textContaining('2060'), findsNothing);
   });
 
   group('Small screens and large text do not overflow', () {
