@@ -192,6 +192,28 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
     _tempUnit = s.tempUnit;
   }
 
+  IndicatorFieldData _field(Indicator i, AppSettings s, Map<Indicator, FieldStatus> statuses) {
+    final n = Indicator.values.indexOf(i);
+    final isLast = n == Indicator.values.length - 1;
+    return IndicatorFieldData(
+      spec: IndicatorSpec.of(i, s),
+      controller: _ctrl[i]!,
+      focusNode: _focus[i]!,
+      status: statuses[i]!,
+      showErrors: _submitted || _ctrl[i]!.text.isNotEmpty,
+      crossCheckMessage: 'Must be lower than systolic',
+      isLast: isLast,
+      onChanged: (_) => setState(() {}),
+      onSubmitted: () {
+        if (!isLast) {
+          _focus[Indicator.values[n + 1]]!.requestFocus();
+        } else {
+          FocusScope.of(context).unfocus();
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -200,143 +222,173 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
         if (!didPop) _confirmLeave();
       },
       child: Scaffold(
-        appBar: const AppHeader(title: 'Clinical Assessment'),
-        body: AppStateBuilder(builder: (context, scope) {
-          final s = scope.settings;
-          final statuses = {for (final i in Indicator.values) i: _status(i, s)};
-          final validCount = statuses.values.where((x) => x == FieldStatus.valid).length;
+        appBar: AppHeader(title: _isNewPatient ? 'New assessment' : 'Assessment', showLogo: false),
+        body: AppStateBuilder(
+          builder: (context, scope) {
+            final s = scope.settings;
+            final statuses = {for (final i in Indicator.values) i: _status(i, s)};
+            IndicatorFieldData f(Indicator i) => _field(i, s, statuses);
 
-          final cards = <Widget>[
-            for (var n = 0; n < Indicator.values.length; n++)
-              IndicatorInputCard(
-                spec: IndicatorSpec.of(Indicator.values[n], s),
-                controller: _ctrl[Indicator.values[n]]!,
-                focusNode: _focus[Indicator.values[n]]!,
-                status: statuses[Indicator.values[n]]!,
-                showErrors: _submitted || _ctrl[Indicator.values[n]]!.text.isNotEmpty,
-                crossCheckMessage: 'Must be lower than systolic',
-                isLast: n == Indicator.values.length - 1,
-                onChanged: (_) => setState(() {}),
-                onSubmitted: () {
-                  if (n < Indicator.values.length - 1) {
-                    _focus[Indicator.values[n + 1]]!.requestFocus();
-                  } else {
-                    FocusScope.of(context).unfocus();
-                  }
-                },
-              ),
-          ];
+            final Widget? formAction = _hasAnyValue
+                ? LinkButton(label: 'Clear all', leadingIcon: Icons.backspace_outlined, onPressed: _clearAll)
+                : _isNewPatient
+                    ? LinkButton(label: 'Use sample values', leadingIcon: Icons.science_outlined, onPressed: _fillDemo)
+                    : null;
 
-          final Widget? sectionAction = _hasAnyValue
-              ? LinkButton(label: 'Clear all', onPressed: _clearAll, style: AppTextStyles.labelSm)
-              : _isNewPatient
-                  ? LinkButton(label: 'Fill demo values', onPressed: _fillDemo, style: AppTextStyles.labelSm)
-                  : null;
-
-          return Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.md, AppSpacing.margin, AppSpacing.lg),
-                  children: [
-                    Semantics(header: true, child: Text('Maternal Risk Assessment', style: AppTextStyles.headlineSm)),
-                    const SizedBox(height: 2),
-                    Text('All six indicators are required.',
-                        style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
-                    const SizedBox(height: AppSpacing.md),
-                    _PatientStrip(patientId: _patientId, isNew: _isNewPatient, prefilledFrom: _prefilledFrom),
-                    const SizedBox(height: AppSpacing.lg),
-                    SectionTitle('Six Core Indicators', icon: Icons.monitor_heart_outlined, trailing: sectionAction),
-                    const SizedBox(height: AppSpacing.sm),
-                    for (final card in cards) ...[card, const SizedBox(height: 12)],
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      'Inputs will be evaluated by the clinical decision-support model. '
-                      'Decision remains with credentialed care team.',
-                      textAlign: TextAlign.center,
-                      style:
-                          AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant, fontWeight: FontWeight.w500),
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.margin,
+                      AppSpacing.md,
+                      AppSpacing.margin,
+                      AppSpacing.lg,
                     ),
-                  ],
+                    children: [
+                      _PatientStrip(patientId: _patientId, isNew: _isNewPatient),
+                      if (_prefilledFrom != null) ...[
+                        const SizedBox(height: 12),
+                        InfoNote(
+                          icon: Icons.history,
+                          title: 'Copied from the last visit',
+                          text: 'These values are from ${Fmt.relative(_prefilledFrom!, withTime: false)}. '
+                              'Measure again and update each one before assessing.',
+                          background: AppColors.riskModerateTint,
+                          iconColor: AppColors.riskModerateText,
+                        ),
+                      ],
+                      const SizedBox(height: AppSpacing.md),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Enter all six values.',
+                              style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+                            ),
+                          ),
+                          if (formAction != null) formAction,
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      _Group(title: 'Mother', children: [IndicatorFieldRow(data: f(Indicator.age))]),
+                      const SizedBox(height: 12),
+                      _Group(
+                        title: 'Blood pressure',
+                        children: [
+                          BloodPressureFields(systolic: f(Indicator.systolic), diastolic: f(Indicator.diastolic)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _Group(
+                        title: 'Other vital signs',
+                        children: [
+                          IndicatorFieldRow(data: f(Indicator.bloodGlucose)),
+                          IndicatorFieldRow(data: f(Indicator.bodyTemperature)),
+                          IndicatorFieldRow(data: f(Indicator.heartRate)),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        'AIOVY gives decision support only. The clinical decision stays with you and your care team.',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              _AssessBar(
-                validCount: validCount,
-                total: Indicator.values.length,
-                showErrors: _submitted,
-                onAssess: () => _submit(s),
-              ),
-            ],
-          );
-        }),
+                _AssessBar(
+                  statuses: [for (final i in Indicator.values) statuses[i]!],
+                  showErrors: _submitted,
+                  onAssess: () => _submit(s),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 }
 
-/// One compact line of patient context (replaces the former registry note
-/// and two-tile context card).
-class _PatientStrip extends StatelessWidget {
-  const _PatientStrip({required this.patientId, required this.isNew, required this.prefilledFrom});
+/// A titled white group of related inputs, separated by hairlines.
+class _Group extends StatelessWidget {
+  const _Group({required this.title, required this.children});
 
-  final String patientId;
-  final bool isNew;
-  final DateTime? prefilledFrom;
+  final String title;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    final String detail;
-    if (isNew) {
-      detail = 'New record · ID auto-assigned';
-    } else if (prefilledFrom != null) {
-      detail = 'Pre-filled from last assessment (${Fmt.relative(prefilledFrom!, withTime: false)}). '
-          'Review each value before assessing.';
-    } else {
-      detail = 'Existing record';
-    }
     return AppCard(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, 14, AppSpacing.md, AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const IconTile(
-            icon: Icons.badge_outlined,
-            size: 36,
-            iconSize: 18,
-            circle: true,
-            background: AppColors.secondaryContainer,
-            foreground: AppColors.onSecondaryContainer,
+          Row(
+            children: [
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(title.toUpperCase(), style: AppTextStyles.overline),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Patient $patientId', style: AppTextStyles.titleMd),
-                const SizedBox(height: 2),
-                Text(detail, style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Pill(text: isNew ? 'New Record' : 'Active Record', background: AppColors.surfaceHigh),
+          const SizedBox(height: 12),
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) const Divider(height: 28),
+            children[i],
+          ],
         ],
       ),
     );
   }
 }
 
-/// Sticky bottom bar: validation progress + the primary "Assess Risk" action.
-class _AssessBar extends StatelessWidget {
-  const _AssessBar({
-    required this.validCount,
-    required this.total,
-    required this.showErrors,
-    required this.onAssess,
-  });
+/// Patient context in one line.
+class _PatientStrip extends StatelessWidget {
+  const _PatientStrip({required this.patientId, required this.isNew});
 
-  final int validCount;
-  final int total;
+  final String patientId;
+  final bool isNew;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const IconTile(icon: Icons.badge_outlined, size: 40, iconSize: 20, circle: true),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Semantics(
+                header: true,
+                child: Text('Patient $patientId', style: AppTextStyles.headlineSm),
+              ),
+              Text(
+                isNew ? 'New record · ID assigned automatically' : 'Existing record',
+                style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Sticky bottom bar: a six-segment progress meter + "Assess risk".
+///
+/// The button is never disabled: tapping it with missing values highlights
+/// them and moves focus to the first one, which is easier to understand than
+/// a greyed-out button.
+class _AssessBar extends StatelessWidget {
+  const _AssessBar({required this.statuses, required this.showErrors, required this.onAssess});
+
+  final List<FieldStatus> statuses;
 
   /// True after a submit attempt: incomplete state is shown as an error.
   final bool showErrors;
@@ -344,61 +396,57 @@ class _AssessBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final total = statuses.length;
+    final validCount = statuses.where((s) => s == FieldStatus.valid).length;
     final ready = validCount == total;
     final error = showErrors && !ready;
-    final statusColor = ready ? AppColors.riskLow : (error ? AppColors.error : AppColors.primary);
-    final statusText = ready ? 'Ready' : (error ? 'Check highlighted fields' : 'Incomplete');
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        boxShadow: [BoxShadow(color: Color(0x0F2D1924), blurRadius: 12, offset: Offset(0, -2))],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.margin, 12, AppSpacing.margin, 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Semantics(
-                  liveRegion: true,
-                  label: ready
-                      ? 'All $total indicators valid. Ready to assess.'
-                      : '$validCount of $total indicators valid. $statusText.',
-                  excludeSemantics: true,
-                  child: Row(
-                    children: [
-                      Icon(
-                        ready
-                            ? Icons.verified_user_outlined
-                            : (error ? Icons.error_outline : Icons.pending_outlined),
-                        size: 20,
-                        color: statusColor,
+    final statusText = ready
+        ? 'Ready to assess'
+        : error
+            ? 'Check the highlighted values'
+            : '$validCount of $total values entered';
+
+    return StickyActionBar(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            liveRegion: true,
+            label: ready
+                ? 'All $total values valid. Ready to assess.'
+                : '$validCount of $total values valid.${error ? ' Check the highlighted values.' : ''}',
+            excludeSemantics: true,
+            child: Row(
+              children: [
+                for (var i = 0; i < total; i++) ...[
+                  if (i > 0) const SizedBox(width: 4),
+                  Expanded(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      height: 4,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(99),
+                        color: statuses[i] == FieldStatus.valid
+                            ? AppColors.riskLow
+                            : (showErrors ? AppColors.error.withAlpha(110) : AppColors.surfaceHigh),
                       ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('$validCount of $total valid', style: AppTextStyles.labelLg),
-                            Text(statusText,
-                                style: AppTextStyles.labelSm
-                                    .copyWith(color: error || ready ? statusColor : AppColors.onSurfaceVariant)),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
+                  ),
+                ],
+                const SizedBox(width: 12),
+                Text(
+                  statusText,
+                  style: AppTextStyles.labelSm.copyWith(
+                    color: ready ? AppColors.riskLow : (error ? AppColors.error : AppColors.onSurfaceVariant),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: PrimaryButton(label: 'Assess Risk', trailingIcon: Icons.arrow_forward, onPressed: onAssess),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          const SizedBox(height: 10),
+          PrimaryButton(label: 'Assess risk', trailingIcon: Icons.arrow_forward, onPressed: onAssess),
+        ],
       ),
     );
   }

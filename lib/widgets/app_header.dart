@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/app_colors.dart';
-import '../core/theme/app_spacing.dart';
 import '../core/theme/app_text_styles.dart';
 import '../navigation/app_navigator.dart';
 import 'aiovy_logo.dart';
@@ -51,7 +50,10 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     final topPad = MediaQuery.paddingOf(context).top;
     return Container(
       padding: EdgeInsets.only(top: topPad),
-      decoration: BoxDecoration(color: AppColors.surface.withAlpha(242), boxShadow: AppShadows.header),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
       child: SizedBox(
         height: 64,
         child: Padding(
@@ -65,7 +67,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget _backButton(BuildContext context) => IconButton(
         tooltip: 'Back',
         onPressed: onBack ?? () => Navigator.of(context).maybePop(),
-        icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: AppColors.primary),
+        icon: const Icon(Icons.arrow_back, size: 24, color: AppColors.onSurface),
       );
 
   Widget _avatar(BuildContext context) {
@@ -89,25 +91,18 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   Widget _content(BuildContext context) {
     switch (style) {
       case HeaderStyle.brand:
+        // The screen title is announced to screen readers but not shown: on
+        // Home the brand is the title.
         return Row(
           children: [
-            const SizedBox(width: 8),
-            const AiovyLogoMark(size: 32),
-            const SizedBox(width: 8),
-            Text('AIOVY', style: AppTextStyles.titleMd.copyWith(letterSpacing: -0.2)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text('|', style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
+            const SizedBox(width: 4),
+            Semantics(
+              header: true,
+              label: 'AIOVY $title',
+              excludeSemantics: true,
+              child: const AiovyWordmark(height: 30),
             ),
-            Expanded(
-              child: Semantics(
-                header: true,
-                child: Text(title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.titleMd.copyWith(color: AppColors.primary)),
-              ),
-            ),
+            const Spacer(),
             ...actions,
             _avatar(context),
           ],
@@ -177,8 +172,8 @@ class HeaderAvatar extends StatelessWidget {
             child: Center(
               child: CircleAvatar(
                 radius: 18,
-                backgroundColor: AppColors.primary,
-                child: Icon(Icons.person, size: 20, color: Colors.white),
+                backgroundColor: AppColors.surfaceContainer,
+                child: Icon(Icons.person_outline, size: 20, color: AppColors.onSurfaceVariant),
               ),
             ),
           ),

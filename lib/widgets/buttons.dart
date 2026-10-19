@@ -5,13 +5,13 @@ import '../core/theme/app_spacing.dart';
 import '../core/theme/app_text_styles.dart';
 
 /// Button hierarchy:
-/// * [PrimaryButton] – filled plum, one per screen (Sign In, Assess Risk,
-///   Save Assessment);
+/// * [PrimaryButton] – filled rose, one per screen (Sign in, Assess risk,
+///   Save assessment);
 /// * [SecondaryButton] – outlined, for a supporting action;
 /// * [LinkButton] – text only, for tertiary actions.
 
-/// Main plum call-to-action (52 px tall, 16 px radius). Shrinks slightly
-/// while pressed for tactile feedback.
+/// Main call-to-action (52 px tall). Darkens and shrinks slightly while
+/// pressed for tactile feedback.
 class PrimaryButton extends StatefulWidget {
   const PrimaryButton({
     super.key,
@@ -23,7 +23,8 @@ class PrimaryButton extends StatefulWidget {
     this.height = 52,
     this.background = AppColors.primary,
     this.foreground = AppColors.onPrimary,
-    this.radius = AppRadius.lg,
+    this.pressedBackground,
+    this.radius = AppRadius.md + 2,
     this.side,
   });
 
@@ -35,6 +36,9 @@ class PrimaryButton extends StatefulWidget {
   final double height;
   final Color background;
   final Color foreground;
+
+  /// Defaults to [AppColors.primaryPressed] for the rose button.
+  final Color? pressedBackground;
   final double radius;
   final BorderSide? side;
 
@@ -49,6 +53,8 @@ class _PrimaryButtonState extends State<PrimaryButton> {
   Widget build(BuildContext context) {
     final w = widget;
     final enabled = w.onPressed != null && !w.loading;
+    final pressedBg = w.pressedBackground ?? (w.background == AppColors.primary ? AppColors.primaryPressed : null);
+    final bg = _pressed && pressedBg != null ? pressedBg : w.background;
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(w.radius),
       side: w.side ?? BorderSide.none,
@@ -59,20 +65,16 @@ class _PrimaryButtonState extends State<PrimaryButton> {
       label: w.label,
       excludeSemantics: true,
       child: AnimatedScale(
-        scale: _pressed ? 0.98 : 1,
+        scale: _pressed ? 0.985 : 1,
         duration: const Duration(milliseconds: 120),
         curve: Curves.easeOut,
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 200),
           opacity: enabled || w.loading ? 1 : 0.45,
-          child: Container(
+          child: SizedBox(
             height: w.height,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(w.radius),
-              boxShadow: enabled && w.background == AppColors.primary ? AppShadows.primaryGlow : null,
-            ),
             child: Material(
-              color: w.background,
+              color: bg,
               shape: shape,
               clipBehavior: Clip.antiAlias,
               child: InkWell(
@@ -119,7 +121,7 @@ class _PrimaryButtonState extends State<PrimaryButton> {
   }
 }
 
-/// Outlined secondary button: white surface, soft border, plum label.
+/// Outlined secondary button: white surface, soft border, rose label.
 class SecondaryButton extends StatelessWidget {
   const SecondaryButton({
     super.key,
@@ -140,8 +142,9 @@ class SecondaryButton extends StatelessWidget {
         onPressed: onPressed,
         leadingIcon: leadingIcon,
         background: AppColors.surfaceLowest,
+        pressedBackground: AppColors.primarySoft,
         foreground: foreground,
-        side: const BorderSide(color: AppColors.fieldBorder),
+        side: const BorderSide(color: AppColors.outlineVariant, width: 1.5),
       );
 }
 
@@ -179,7 +182,14 @@ class LinkButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (leadingIcon != null) ...[Icon(leadingIcon, size: 18), const SizedBox(width: 4)],
-          Text(label, style: (style ?? AppTextStyles.labelMd).copyWith(color: color, fontWeight: FontWeight.w600)),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: (style ?? AppTextStyles.labelMd).weight(FontWeight.w600).copyWith(color: color),
+            ),
+          ),
           if (trailingIcon != null) ...[const SizedBox(width: 2), Icon(trailingIcon, size: 18)],
         ],
       ),

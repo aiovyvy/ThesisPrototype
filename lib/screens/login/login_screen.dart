@@ -65,49 +65,49 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.md, AppSpacing.margin, AppSpacing.xl),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.lg, AppSpacing.margin, AppSpacing.lg),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
+              constraints: const BoxConstraints(maxWidth: 440),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const AiovyWordmark(height: 36),
-                  const SizedBox(height: AppSpacing.lg),
-                  const Pill(
-                    text: 'Clinical Portal',
-                    uppercase: true,
-                    icon: Icons.local_hospital_outlined,
-                    background: AppColors.secondaryContainer,
-                    foreground: AppColors.onSecondaryContainer,
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  const Align(alignment: Alignment.centerLeft, child: AiovyWordmark(height: 36)),
+                  const SizedBox(height: AppSpacing.xl),
+                  Semantics(
+                    header: true,
+                    child: Text('Sign in', style: AppTextStyles.displayLg),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  Semantics(header: true, child: Text('Welcome back', style: AppTextStyles.headlineMd)),
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: 6),
                   Text(
-                    'Sign in with your clinical credentials to access maternal risk assessment',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.bodyLg.copyWith(color: AppColors.onSurfaceVariant),
+                    'Maternal risk assessment for barangay midwives and obstetric teams.',
+                    style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   _card(settings),
-                  const SizedBox(height: AppSpacing.lg),
-                  const Pill(
-                    text: 'Secure Session',
-                    icon: Icons.enhanced_encryption_outlined,
-                    background: AppColors.surfaceHigh,
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  const SizedBox(height: AppSpacing.md),
+                  const InfoNote(
+                    icon: Icons.science_outlined,
+                    title: 'Thesis prototype',
+                    text: 'Any non-empty email and password signs in. Use demo records only, '
+                        'never real patient information.',
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  LinkButton(
-                    label: 'Hospital Staff Access Help',
-                    leadingIcon: Icons.contact_support_outlined,
-                    color: AppColors.onSurfaceVariant,
-                    onPressed: () => _showInfo(
-                      'Access help',
-                      'This is a thesis prototype. Any non-empty email or clinical ID and password will sign you in.',
+                  Center(
+                    child: LinkButton(
+                      label: 'Need help signing in?',
+                      leadingIcon: Icons.help_outline,
+                      color: AppColors.onSurfaceVariant,
+                      onPressed: () => _showInfo(
+                        'Access help',
+                        'This is a thesis prototype. Any non-empty email or clinical ID and password will sign you in.',
+                      ),
                     ),
                   ),
-                  Text(AppStrings.versionShort, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
+                  Text(
+                    AppStrings.versionShort,
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
+                  ),
                 ],
               ),
             ),
@@ -118,106 +118,89 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _card(AppSettings settings) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceLowest,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: AppShadows.md,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          Container(
-            height: 4,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [AppColors.primaryFixedDim, AppColors.primaryContainer, AppColors.primaryFixedDim]),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Form(
-              key: _formKey,
-              child: AutofillGroup(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    FieldLabel(
-                      label: 'Email or Clinical ID',
-                      trailing: Text('Clinical ID / Organization ID',
-                          style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
+    return AppCard(
+      radius: AppRadius.xl,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xs),
+        child: Form(
+          key: _formKey,
+          child: AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const FieldLabel(label: 'Email or clinical ID'),
+                const SizedBox(height: 6),
+                AppTextField(
+                  controller: _email,
+                  hint: 'e.g. dr.santos@hospital.org',
+                  icon: Icons.badge_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.email, AutofillHints.username],
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your email or clinical ID' : null,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                FieldLabel(
+                  label: 'Password',
+                  trailing: LinkButton(
+                    label: 'Forgot password?',
+                    style: AppTextStyles.labelSm,
+                    onPressed: () => _showInfo(
+                      'Reset password',
+                      'Password reset is handled by your institution. In this prototype any password works.',
                     ),
-                    const SizedBox(height: 6),
-                    AppTextField(
-                      controller: _email,
-                      hint: 'e.g. dr.santos@hospital.org',
-                      icon: Icons.badge_outlined,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.email, AutofillHints.username],
-                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your email or clinical ID' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    FieldLabel(
-                      label: 'Password',
-                      trailing: LinkButton(
-                        label: 'Forgot password?',
-                        style: AppTextStyles.labelSm,
-                        onPressed: () => _showInfo(
-                          'Reset password',
-                          'Password reset is handled by your institution. In this prototype any password works.',
+                  ),
+                ),
+                AppTextField(
+                  controller: _password,
+                  hint: 'Enter clinical password',
+                  icon: Icons.lock_outline,
+                  obscureText: _obscure,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.password],
+                  onSubmitted: (_) => _signIn(),
+                  validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
+                  suffix: LinkButton(
+                    label: _obscure ? 'Show' : 'Hide',
+                    style: AppTextStyles.labelSm,
+                    onPressed: () => setState(() => _obscure = !_obscure),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                MergeSemantics(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Remember this workstation', style: AppTextStyles.labelLg),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Prototype setting · not stored on the device',
+                              style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    AppTextField(
-                      controller: _password,
-                      hint: 'Enter clinical password',
-                      icon: Icons.lock_outline,
-                      obscureText: _obscure,
-                      textInputAction: TextInputAction.done,
-                      autofillHints: const [AutofillHints.password],
-                      onSubmitted: (_) => _signIn(),
-                      validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
-                      suffix: LinkButton(
-                        label: _obscure ? 'Show' : 'Hide',
-                        style: AppTextStyles.labelSm,
-                        onPressed: () => setState(() => _obscure = !_obscure),
+                      AiovySwitch(
+                        value: settings.rememberWorkstation,
+                        onChanged: (v) => setState(() => settings.rememberWorkstation = v),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    MergeSemantics(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Remember this workstation', style: AppTextStyles.labelLg),
-                                const SizedBox(height: 2),
-                                Text('Keep 12-hour active bedside session',
-                                    style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
-                              ],
-                            ),
-                          ),
-                          AiovySwitch(
-                            value: settings.rememberWorkstation,
-                            onChanged: (v) => setState(() => settings.rememberWorkstation = v),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    PrimaryButton(
-                      label: 'Sign In',
-                      trailingIcon: Icons.arrow_forward,
-                      loading: _loading,
-                      onPressed: _signIn,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: AppSpacing.lg),
+                PrimaryButton(
+                  label: 'Sign in',
+                  trailingIcon: Icons.arrow_forward,
+                  loading: _loading,
+                  onPressed: _signIn,
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

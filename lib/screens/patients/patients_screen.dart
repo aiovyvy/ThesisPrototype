@@ -95,7 +95,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
             ),
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 64,
+                height: 68,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.margin, vertical: 10),
@@ -123,12 +123,15 @@ class _PatientsScreenState extends State<PatientsScreen> {
             else
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.margin),
-                sliver: SliverList.separated(
-                  itemCount: visible.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) => PatientListCard(
-                    patient: visible[i],
-                    onTap: () => AppNavigator.push(context, PatientProfileScreen(patientId: visible[i].id)),
+                sliver: SliverToBoxAdapter(
+                  child: GroupedList(
+                    children: [
+                      for (final p in visible)
+                        PatientListRow(
+                          patient: p,
+                          onTap: () => AppNavigator.push(context, PatientProfileScreen(patientId: p.id)),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -157,7 +160,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = selected ? Colors.white : AppColors.onSurfaceVariant;
+    final fg = selected ? AppColors.primary : AppColors.onSurfaceVariant;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: Semantics(
@@ -166,7 +169,7 @@ class _FilterChip extends StatelessWidget {
         label: '$label filter, $count patients',
         excludeSemantics: true,
         child: Material(
-          color: selected ? AppColors.primary : AppColors.surfaceLowest,
+          color: selected ? AppColors.primarySoft : AppColors.surfaceLowest,
           borderRadius: BorderRadius.circular(99),
           elevation: 0,
           child: InkWell(
@@ -176,19 +179,27 @@ class _FilterChip extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(99),
-                border: selected ? null : Border.all(color: AppColors.fieldBorder),
+                border: Border.all(
+                  color: selected ? AppColors.primary : AppColors.outlineVariant,
+                  width: selected ? 1.5 : 1,
+                ),
               ),
               alignment: Alignment.center,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (dot != null) ...[
-                    RiskDot(color: selected ? Colors.white : dot!),
+                  if (selected)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 4),
+                      child: Icon(Icons.check, size: 16, color: AppColors.primary),
+                    )
+                  else if (dot != null) ...[
+                    RiskDot(color: dot!),
                     const SizedBox(width: 6),
                   ],
-                  Text(label, style: AppTextStyles.labelMd.copyWith(color: fg, fontWeight: FontWeight.w600)),
+                  Text(label, style: AppTextStyles.labelMd.weight(FontWeight.w600).copyWith(color: fg)),
                   const SizedBox(width: 4),
-                  Text('($count)', style: AppTextStyles.labelSm.copyWith(color: fg, fontWeight: FontWeight.w500)),
+                  Text('$count', style: AppTextStyles.labelSm.tabular.copyWith(color: fg)),
                 ],
               ),
             ),

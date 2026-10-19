@@ -1,41 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
-/// Typography scale from the Stitch design system (Inter).
+/// Typography scale (Inter).
 ///
-/// The font family itself is applied app-wide in [AppTheme]; these styles only
-/// set size / weight / height so they inherit Inter automatically.
+/// Every style is created through [GoogleFonts.inter] so the font file for
+/// its *own* weight is loaded. Setting only a family name and then changing
+/// `fontWeight` makes the engine synthesize bold from the regular file, so
+/// use [AppTextStyleX.weight] rather than `copyWith(fontWeight: ...)`.
+///
+/// Without network access (or before the font has downloaded) text falls
+/// back to the platform sans-serif.
 class AppTextStyles {
   AppTextStyles._();
 
-  static const TextStyle displayLg = TextStyle(
-      fontSize: 34, height: 41 / 34, fontWeight: FontWeight.w700, color: AppColors.onSurface, letterSpacing: -0.5);
-  static const TextStyle headlineLg = TextStyle(
-      fontSize: 28, height: 34 / 28, fontWeight: FontWeight.w700, color: AppColors.onSurface, letterSpacing: -0.3);
-  static const TextStyle headlineMd = TextStyle(
-      fontSize: 22, height: 28 / 22, fontWeight: FontWeight.w600, color: AppColors.onSurface, letterSpacing: -0.2);
-  static const TextStyle headlineSm = TextStyle(
-      fontSize: 20, height: 25 / 20, fontWeight: FontWeight.w600, color: AppColors.onSurface, letterSpacing: -0.2);
-  static const TextStyle titleMd =
-      TextStyle(fontSize: 17, height: 22 / 17, fontWeight: FontWeight.w600, color: AppColors.onSurface);
-  static const TextStyle bodyLg =
-      TextStyle(fontSize: 17, height: 24 / 17, fontWeight: FontWeight.w400, color: AppColors.onSurface);
-  static const TextStyle bodyMd =
-      TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w400, color: AppColors.onSurface);
-  static const TextStyle labelLg =
-      TextStyle(fontSize: 15, height: 20 / 15, fontWeight: FontWeight.w600, color: AppColors.onSurface);
-  static const TextStyle labelMd =
-      TextStyle(fontSize: 13, height: 18 / 13, fontWeight: FontWeight.w500, color: AppColors.onSurface);
+  static TextStyle _inter(
+    double size,
+    double lineHeight,
+    FontWeight weight, {
+    double? letterSpacing,
+    Color color = AppColors.onSurface,
+  }) =>
+      GoogleFonts.inter(
+        textStyle: TextStyle(
+          fontSize: size,
+          height: lineHeight / size,
+          fontWeight: weight,
+          letterSpacing: letterSpacing,
+          color: color,
+        ),
+      );
 
-  /// Stitch uses 11px; 12px is used here as the legibility floor.
-  static const TextStyle labelSm =
-      TextStyle(fontSize: 12, height: 16 / 12, fontWeight: FontWeight.w600, color: AppColors.onSurface);
+  static final TextStyle displayLg = _inter(32, 38, FontWeight.w700, letterSpacing: -0.6);
+  static final TextStyle headlineLg = _inter(28, 34, FontWeight.w700, letterSpacing: -0.5);
+  static final TextStyle headlineMd = _inter(22, 28, FontWeight.w600, letterSpacing: -0.3);
+  static final TextStyle headlineSm = _inter(19, 24, FontWeight.w600, letterSpacing: -0.2);
+  static final TextStyle titleMd = _inter(17, 22, FontWeight.w600, letterSpacing: -0.1);
+  static final TextStyle bodyLg = _inter(17, 25, FontWeight.w400);
 
-  static const TextStyle overline = TextStyle(
-      fontSize: 12,
-      height: 16 / 12,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.9,
-      color: AppColors.onSurfaceVariant);
+  /// Default reading size: 16 px for legibility in the field.
+  static final TextStyle bodyMd = _inter(16, 23, FontWeight.w400);
+  static final TextStyle bodySm = _inter(14, 20, FontWeight.w400);
+  static final TextStyle labelLg = _inter(15, 20, FontWeight.w600);
+  static final TextStyle labelMd = _inter(14, 19, FontWeight.w500);
+
+  /// 12 px is the legibility floor; nothing in the app is smaller.
+  static final TextStyle labelSm = _inter(12, 16, FontWeight.w600);
+
+  static final TextStyle overline = _inter(
+    12,
+    16,
+    FontWeight.w600,
+    letterSpacing: 0.8,
+    color: AppColors.onSurfaceVariant,
+  );
+
+  /// Large numerals: indicator inputs, counts, probabilities.
+  static final TextStyle metric = _inter(
+    24,
+    28,
+    FontWeight.w600,
+    letterSpacing: -0.3,
+  ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
+}
+
+extension AppTextStyleX on TextStyle {
+  /// The same style at another Inter weight, using that weight's real font.
+  TextStyle weight(FontWeight w) => GoogleFonts.inter(textStyle: copyWith(fontWeight: w));
+
+  /// Fixed-width digits so columns of numbers line up and don't jitter.
+  TextStyle get tabular => copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
 }

@@ -5,7 +5,7 @@ import '../core/theme/app_colors.dart';
 import '../core/theme/app_spacing.dart';
 import '../core/theme/app_text_styles.dart';
 
-/// White rounded card with the soft Stitch shadow.
+/// White rounded surface with a hairline border (no shadow by default).
 class AppCard extends StatelessWidget {
   const AppCard({
     super.key,
@@ -13,7 +13,7 @@ class AppCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(AppSpacing.md),
     this.color = AppColors.surfaceLowest,
     this.radius = AppRadius.card,
-    this.shadow = AppShadows.sm,
+    this.shadow,
     this.border,
     this.onTap,
     this.semanticLabel,
@@ -24,6 +24,8 @@ class AppCard extends StatelessWidget {
   final Color color;
   final double radius;
   final List<BoxShadow>? shadow;
+
+  /// Defaults to a 1 px [AppColors.border] hairline.
   final BoxBorder? border;
   final VoidCallback? onTap;
   final String? semanticLabel;
@@ -36,7 +38,12 @@ class AppCard extends StatelessWidget {
       content = InkWell(onTap: onTap, borderRadius: br, child: content);
     }
     Widget card = Container(
-      decoration: BoxDecoration(color: color, borderRadius: br, boxShadow: shadow, border: border),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: br,
+        boxShadow: shadow,
+        border: border ?? Border.all(color: AppColors.border),
+      ),
       child: Material(type: MaterialType.transparency, borderRadius: br, clipBehavior: Clip.antiAlias, child: content),
     );
     if (semanticLabel != null) {
@@ -71,10 +78,7 @@ class Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ts = (style ?? AppTextStyles.labelSm).copyWith(
-      color: foreground,
-      letterSpacing: uppercase ? 0.8 : null,
-    );
+    final ts = (style ?? AppTextStyles.labelSm).copyWith(color: foreground, letterSpacing: uppercase ? 0.8 : null);
     return Container(
       padding: padding,
       decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(AppRadius.pill)),
@@ -82,19 +86,16 @@ class Pill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (dotColor != null) ...[
-            Container(width: 6, height: 6, decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle)),
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+            ),
             const SizedBox(width: 6),
           ],
-          if (icon != null) ...[
-            Icon(icon, size: 15, color: foreground),
-            const SizedBox(width: 4),
-          ],
+          if (icon != null) ...[Icon(icon, size: 15, color: foreground), const SizedBox(width: 4)],
           Flexible(
-            child: Text(
-              uppercase ? text.toUpperCase() : text,
-              style: ts,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Text(uppercase ? text.toUpperCase() : text, style: ts, overflow: TextOverflow.ellipsis),
           ),
         ],
       ),
@@ -102,15 +103,16 @@ class Pill extends StatelessWidget {
   }
 }
 
-/// Square/circle tile holding an icon.
+/// Square/circle tile holding an icon. Neutral by default; pass risk or
+/// brand colours only where the colour carries meaning.
 class IconTile extends StatelessWidget {
   const IconTile({
     super.key,
     required this.icon,
     this.size = 40,
     this.iconSize = 20,
-    this.background = AppColors.primaryFixed,
-    this.foreground = AppColors.primary,
+    this.background = AppColors.surfaceLow,
+    this.foreground = AppColors.onSurfaceVariant,
     this.circle = false,
     this.radius = 12,
   });
@@ -156,7 +158,10 @@ class SectionLabel extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Semantics(header: true, child: Text(text.toUpperCase(), style: AppTextStyles.overline)),
+            child: Semantics(
+              header: true,
+              child: Text(text.toUpperCase(), style: AppTextStyles.overline),
+            ),
           ),
           if (trailing != null) trailing!,
         ],
@@ -165,24 +170,34 @@ class SectionLabel extends StatelessWidget {
   }
 }
 
-/// Bold section title with optional trailing action.
+/// Section heading with an optional one-line caption and trailing action.
 class SectionTitle extends StatelessWidget {
-  const SectionTitle(this.text, {super.key, this.icon, this.trailing});
+  const SectionTitle(this.text, {super.key, this.icon, this.trailing, this.caption});
 
   final String text;
   final IconData? icon;
   final Widget? trailing;
+  final String? caption;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        if (icon != null) ...[
-          Icon(icon, size: 20, color: AppColors.primary),
-          const SizedBox(width: 8),
-        ],
+        if (icon != null) ...[Icon(icon, size: 20, color: AppColors.onSurfaceVariant), const SizedBox(width: 8)],
         Expanded(
-          child: Semantics(header: true, child: Text(text, style: AppTextStyles.titleMd)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Semantics(
+                header: true,
+                child: Text(text, style: AppTextStyles.titleMd),
+              ),
+              if (caption != null) ...[
+                const SizedBox(height: 2),
+                Text(caption!, style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+              ],
+            ],
+          ),
         ),
         if (trailing != null) trailing!,
       ],
@@ -190,17 +205,18 @@ class SectionTitle extends StatelessWidget {
   }
 }
 
-/// Soft tinted note with an icon (disclaimers, prototype notices).
+/// Tinted note with an icon (disclaimers, prototype notices, alerts).
 class InfoNote extends StatelessWidget {
   const InfoNote({
     super.key,
     required this.text,
-    this.icon = Icons.verified_user_outlined,
+    this.icon = Icons.info_outline,
     this.title,
-    this.background = const Color(0xFFF1ECEE),
+    this.background = AppColors.infoTint,
     this.foreground = AppColors.onSurfaceVariant,
-    this.iconColor = AppColors.primary,
-    this.circleIcon = true,
+    this.iconColor = AppColors.infoInk,
+    this.circleIcon = false,
+    this.borderColor,
   });
 
   final String text;
@@ -211,11 +227,18 @@ class InfoNote extends StatelessWidget {
   final Color iconColor;
   final bool circleIcon;
 
+  /// Optional 1 px left-and-around border, e.g. for alerts.
+  final Color? borderColor;
+
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(AppRadius.card)),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: borderColor == null ? null : Border.all(color: borderColor!),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -229,7 +252,10 @@ class InfoNote extends StatelessWidget {
               foreground: iconColor,
             )
           else
-            Padding(padding: const EdgeInsets.only(top: 1), child: Icon(icon, size: 18, color: iconColor)),
+            Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: ExcludeSemantics(child: Icon(icon, size: 20, color: iconColor)),
+            ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -239,7 +265,7 @@ class InfoNote extends StatelessWidget {
                   Text(title!, style: AppTextStyles.labelLg.copyWith(color: AppColors.onSurface)),
                   const SizedBox(height: 2),
                 ],
-                Text(text, style: AppTextStyles.labelMd.copyWith(color: foreground, height: 1.45)),
+                Text(text, style: AppTextStyles.bodySm.copyWith(color: foreground)),
               ],
             ),
           ),
@@ -261,14 +287,19 @@ class VersionFooter extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Column(
         children: [
-          Text(AppStrings.versionShort,
-              textAlign: TextAlign.center, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
+          Text(
+            AppStrings.versionShort,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
+          ),
           if (subtitle != null)
             Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Text(subtitle!,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.w500)),
+              child: Text(
+                subtitle!,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.primary),
+              ),
             ),
         ],
       ),
@@ -286,6 +317,7 @@ class ValueTile extends StatelessWidget {
     this.icon,
     this.background = AppColors.surfaceLow,
     this.valueStyle,
+    this.valueColor,
   });
 
   final String label;
@@ -294,6 +326,7 @@ class ValueTile extends StatelessWidget {
   final IconData? icon;
   final Color background;
   final TextStyle? valueStyle;
+  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
@@ -301,7 +334,7 @@ class ValueTile extends StatelessWidget {
       label: '$label: $value ${unit ?? ''}',
       excludeSemantics: true,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(AppRadius.md)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,27 +343,34 @@ class ValueTile extends StatelessWidget {
             Row(
               children: [
                 if (icon != null) ...[
-                  Icon(icon, size: 14, color: AppColors.primary),
-                  const SizedBox(width: 4),
+                  Icon(icon, size: 14, color: AppColors.onSurfaceVariant),
+                  const SizedBox(width: 4)
                 ],
                 Expanded(
-                  child: Text(label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text.rich(
-              TextSpan(children: [
-                TextSpan(text: value, style: valueStyle ?? AppTextStyles.headlineSm),
-                if (unit != null)
+              TextSpan(
+                children: [
                   TextSpan(
-                    text: ' $unit',
-                    style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant),
+                    text: value,
+                    style: (valueStyle ?? AppTextStyles.headlineSm.tabular).copyWith(color: valueColor),
                   ),
-              ]),
+                  if (unit != null)
+                    TextSpan(
+                      text: ' $unit',
+                      style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.onSurfaceVariant),
+                    ),
+                ],
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -359,17 +399,43 @@ class ResponsiveGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, c) {
-      var cols = columns;
-      while (cols > 1 && (c.maxWidth - spacing * (cols - 1)) / cols < minItemWidth) {
-        cols--;
-      }
-      final w = (c.maxWidth - spacing * (cols - 1)) / cols;
-      return Wrap(
-        spacing: spacing,
-        runSpacing: spacing,
-        children: [for (final child in children) SizedBox(width: w, child: child)],
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, c) {
+        var cols = columns;
+        while (cols > 1 && (c.maxWidth - spacing * (cols - 1)) / cols < minItemWidth) {
+          cols--;
+        }
+        final w = (c.maxWidth - spacing * (cols - 1)) / cols;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [for (final child in children) SizedBox(width: w, child: child)],
+        );
+      },
+    );
+  }
+}
+
+/// Bottom bar that holds a screen's primary action, above the system inset.
+/// Used by the assessment form, the result and the processing error state so
+/// the main action is always in the same place.
+class StickyActionBar extends StatelessWidget {
+  const StickyActionBar({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceLowest,
+        border: Border(top: BorderSide(color: AppColors.border)),
+        boxShadow: AppShadows.bar,
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(padding: const EdgeInsets.fromLTRB(AppSpacing.margin, 12, AppSpacing.margin, 12), child: child),
+      ),
+    );
   }
 }

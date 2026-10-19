@@ -14,7 +14,6 @@ import '../../widgets/app_header.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
 import '../../widgets/patient_widgets.dart';
-import '../../widgets/risk_badge.dart';
 import '../assessment/assessment_input_screen.dart';
 import '../result/result_screen.dart';
 
@@ -103,22 +102,19 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
             _StatusCard(patient: p),
             const SizedBox(height: AppSpacing.md),
             PrimaryButton(
-              label: 'New Assessment',
+              label: 'New assessment',
               leadingIcon: Icons.add_circle_outline,
               onPressed: () => AppNavigator.push(context, AssessmentInputScreen(patientId: p.id)),
             ),
             if (latest != null) ...[
-              const SizedBox(height: AppSpacing.xl),
-              const SectionTitle('Current Assessment'),
+              const SizedBox(height: AppSpacing.lg),
+              SectionTitle('Latest values', caption: Fmt.relative(latest.timestamp)),
               const SizedBox(height: AppSpacing.sm),
-              AppCard(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.md, 4, AppSpacing.md, 4),
-                child: AssessmentSummary(indicators: latest.indicators, settings: s),
-              ),
+              IndicatorGrid(indicators: latest.indicators, settings: s),
             ],
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.lg),
             SectionTitle(
-              'Assessment History (${p.assessments.length})',
+              'Assessment history (${p.assessments.length})',
               trailing: LinkButton(
                 label: _historyFilter == null ? 'Filter' : _historyFilter!.shortLabel,
                 leadingIcon: Icons.tune,
@@ -129,7 +125,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
             if (history.isEmpty)
               const InfoNote(text: 'No assessments match this filter.', icon: Icons.filter_list)
             else
-              _Timeline(assessments: history, settings: s),
+              _Timeline(assessments: history, all: p.assessments, settings: s),
             const SizedBox(height: AppSpacing.sm),
             Text(
               'Demo records only · no real patient data',
@@ -161,10 +157,9 @@ class _StatusCard extends StatelessWidget {
     final hasContext = patient.gestationalAge != null || patient.clinicalNote != null;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceLowest,
+        color: level?.tint ?? AppColors.surfaceLowest,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        boxShadow: AppShadows.sm,
-        border: level == null ? null : Border.all(color: level.color.withAlpha(80)),
+        border: Border.all(color: level == null ? AppColors.border : level.color.withAlpha(70)),
       ),
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
@@ -176,16 +171,16 @@ class _StatusCard extends StatelessWidget {
                 icon: level?.icon ?? Icons.person_outline,
                 size: 52,
                 iconSize: 28,
-                radius: 16,
-                background: level?.tint ?? AppColors.primaryFixed,
-                foreground: level?.color ?? AppColors.primary,
+                radius: 14,
+                background: AppColors.surfaceLowest,
+                foreground: level?.color ?? AppColors.onSurfaceVariant,
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('CURRENT STATUS', style: AppTextStyles.overline.copyWith(fontSize: 11)),
+                    Text('CURRENT STATUS', style: AppTextStyles.overline),
                     const SizedBox(height: 2),
                     Semantics(
                       header: true,
@@ -204,7 +199,7 @@ class _StatusCard extends StatelessWidget {
               ),
             ],
           ),
-          const Divider(height: 28, color: AppColors.divider),
+          const SizedBox(height: 14),
           Text(
             [
               '${patient.age} years',
@@ -221,7 +216,7 @@ class _StatusCard extends StatelessWidget {
             // Clearly separated from the six model indicators.
             Text(
               'Pregnancy context · not a model input',
-              style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontWeight: FontWeight.w500),
+              style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.onSurfaceVariant),
             ),
           ],
         ],
@@ -231,103 +226,107 @@ class _StatusCard extends StatelessWidget {
 }
 
 class _Timeline extends StatelessWidget {
-  const _Timeline({required this.assessments, required this.settings});
+  const _Timeline({required this.assessments, required this.all, required this.settings});
 
+  /// The (possibly filtered) assessments to show, newest first.
   final List<Assessment> assessments;
+
+  /// Every assessment for the patient, newest first – used to find each
+  /// one's previous result even when a filter hides it.
+  final List<Assessment> all;
   final AppSettings settings;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return GroupedList(
       children: [
-        if (assessments.length > 1)
-          Positioned(
-            left: 9,
-            top: 26,
-            bottom: 40,
-            width: 2,
-            child: Container(color: AppColors.divider),
+        for (final a in assessments)
+          _HistoryRow(
+            assessment: a,
+            previous: () {
+              final i = all.indexOf(a);
+              return i >= 0 && i + 1 < all.length ? all[i + 1] : null;
+            }(),
+            settings: settings,
           ),
-        Column(
-          children: [
-            for (final a in assessments)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 22),
-                        child: Center(
-                          child: Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: a.result.riskLevel.color,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.surface, width: 2),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(child: _HistoryCard(assessment: a, settings: settings)),
-                  ],
-                ),
-              ),
-          ],
-        ),
       ],
     );
   }
 }
 
-/// The whole card opens the (read-only) result for that assessment.
-class _HistoryCard extends StatelessWidget {
-  const _HistoryCard({required this.assessment, required this.settings});
+/// The whole row opens the (read-only) result for that assessment.
+class _HistoryRow extends StatelessWidget {
+  const _HistoryRow({required this.assessment, required this.previous, required this.settings});
 
   final Assessment assessment;
+  final Assessment? previous;
   final AppSettings settings;
 
   @override
   Widget build(BuildContext context) {
     final a = assessment;
     final m = a.indicators;
+    final level = a.result.riskLevel;
     final vitals = 'BP ${m.systolic}/${m.diastolic} · HR ${m.heartRate} · '
         'BG ${Fmt.glucose(m.bloodGlucose, settings.glucoseUnit)} ${settings.glucoseUnit.label}';
-    return AppCard(
-      radius: AppRadius.lg,
-      onTap: () => AppNavigator.push(context, ResultScreen(assessment: a)),
-      semanticLabel: '${Fmt.relative(a.timestamp)}, ${a.result.riskLevel.label}. $vitals. '
-          'Open result and explanation.',
-      child: ExcludeSemantics(
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(Fmt.relative(a.timestamp), style: AppTextStyles.labelLg),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${a.type} · ${a.assessedBy}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style:
-                        AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(vitals, style: AppTextStyles.labelMd),
-                ],
+    final prev = previous?.result.riskLevel;
+    return Semantics(
+      button: true,
+      label: '${Fmt.relative(a.timestamp)}, ${level.label}'
+          '${prev == null ? '' : (prev == level ? ', same as previous' : ', previously ${prev.label}')}. '
+          '$vitals. ${a.type} by ${a.assessedBy}. Open result and explanation.',
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: () => AppNavigator.push(context, ResultScreen(assessment: a)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.md, 12, 8, 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 44,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Icon(level.icon, size: 22, color: level.color),
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            RiskBadge(level: a.result.riskLevel, short: true),
-            const Icon(Icons.chevron_right, color: AppColors.outline),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 2,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(level.label, style: AppTextStyles.labelLg.copyWith(color: level.textColor)),
+                        if (prev != null) RiskChangeMarker(current: level, previous: prev),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      Fmt.relative(a.timestamp),
+                      style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurface),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(vitals, style: AppTextStyles.bodySm.tabular.copyWith(color: AppColors.onSurfaceVariant)),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${a.type} · ${a.assessedBy}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
+                    ),
+                  ],
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 2),
+                child: Icon(Icons.chevron_right, color: AppColors.outline),
+              ),
+            ],
+          ),
         ),
       ),
     );

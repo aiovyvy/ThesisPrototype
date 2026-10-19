@@ -14,6 +14,6 @@ void main() {
       clinician: MockClinician.demo,
     ));
 
-    expect(find.text('Get Started'), findsOneWidget);
+    expect(find.text('Get started'), findsOneWidget);
   });
 }

@@ -24,9 +24,9 @@ class AiovyBottomNav extends StatelessWidget {
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Container(
       padding: EdgeInsets.only(bottom: bottom),
-      decoration: BoxDecoration(
-        color: AppColors.surface.withAlpha(245),
-        boxShadow: const [BoxShadow(color: Color(0x0A2D1924), blurRadius: 12, offset: Offset(0, -2))],
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceLowest,
+        border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: SizedBox(
         height: 68,
@@ -75,10 +75,10 @@ class _NavItem extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             decoration: BoxDecoration(
-              color: selected ? AppColors.primaryFixed.withAlpha(110) : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
+              color: selected ? AppColors.primarySoft : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -93,7 +93,8 @@ class _NavItem extends StatelessWidget {
                   // Tab labels stay legible but don't grow past 1.2x, so the
                   // bar keeps its height with large accessibility text.
                   textScaler: MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.2),
-                  style: AppTextStyles.labelSm.copyWith(color: color),
+                  style:
+                      AppTextStyles.labelSm.weight(selected ? FontWeight.w700 : FontWeight.w500).copyWith(color: color),
                 ),
               ],
             ),

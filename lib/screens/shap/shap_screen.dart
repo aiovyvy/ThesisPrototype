@@ -5,7 +5,6 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/formatters.dart';
 import '../../models/assessment.dart';
-import '../../models/maternal_indicators.dart';
 import '../../models/risk_level.dart';
 import '../../models/risk_result.dart';
 import '../../navigation/app_navigator.dart';
@@ -13,11 +12,12 @@ import '../../state/app_scope.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
+import '../../widgets/explanation_widgets.dart';
 import '../research/research_screen.dart';
 
-/// Stitch: explainable_ai_shap. Plain-language view of the (mock) SHAP
-/// contributions: one bar per indicator, longest = most influence. The
-/// method details sit in a collapsible "About this explanation" card.
+/// Every indicator's contribution to one result as a diverging bar chart,
+/// largest first. Wording comes from [ContributionFraming] so it matches what
+/// the classifier's numbers mean. Method details sit in a collapsible card.
 class ShapScreen extends StatelessWidget {
   const ShapScreen({super.key, required this.assessment});
 
@@ -27,177 +27,67 @@ class ShapScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = assessment.result;
     final level = r.riskLevel;
+    final framing = ContributionFraming.of(r);
     return Scaffold(
-      appBar: const AppHeader(title: 'Explanation', style: HeaderStyle.backCentered),
-      body: AppStateBuilder(builder: (context, scope) {
-        final s = scope.settings;
-        final maxAbs = r.featureContributions.fold<double>(0.2, (m, f) => f.value.abs() > m ? f.value.abs() : m);
+      appBar: const AppHeader(title: 'Explanation', showLogo: false),
+      body: AppStateBuilder(
+        builder: (context, scope) {
+          final s = scope.settings;
+          final scale = contributionScale(r.featureContributions);
 
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.md, AppSpacing.margin, AppSpacing.xl),
-          children: [
-            Semantics(header: true, child: Text('Why this result?', style: AppTextStyles.headlineMd)),
-            const SizedBox(height: 6),
-            Text.rich(
-              TextSpan(children: [
-                const TextSpan(text: 'These maternal indicators contributed to the '),
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.md, AppSpacing.margin, AppSpacing.xl),
+            children: [
+              Semantics(
+                header: true,
+                child: Text('Why this result?', style: AppTextStyles.headlineMd),
+              ),
+              const SizedBox(height: 6),
+              Text.rich(
                 TextSpan(
-                  text: level.label,
-                  style: TextStyle(color: level.textColor, fontWeight: FontWeight.w600),
-                ),
-                TextSpan(text: ' classification for Patient ${assessment.patientId}.'),
-              ]),
-              style: AppTextStyles.bodyLg.copyWith(color: AppColors.onSurfaceVariant),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            AppCard(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Wrap(
-                    spacing: 20,
-                    runSpacing: 6,
-                    children: [
-                      _Legend(color: AppColors.shapPositive, label: 'Raises risk'),
-                      _Legend(color: AppColors.shapNegative, label: 'Lowers risk'),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  for (var i = 0; i < r.featureContributions.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 22),
-                    _ContributionRow(
-                      contribution: r.featureContributions[i],
-                      valueText: Fmt.indicator(r.featureContributions[i].indicator, assessment.indicators, s),
-                      maxAbs: maxAbs,
+                  children: [
+                    const TextSpan(text: 'How each indicator moved the '),
+                    TextSpan(
+                      text: level.label,
+                      style: AppTextStyles.bodyMd.weight(FontWeight.w600).copyWith(color: level.textColor),
                     ),
+                    TextSpan(text: ' result for Patient ${assessment.patientId}.'),
                   ],
-                ],
+                ),
+                style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
               ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            InfoNote(title: 'In short', text: _summary(r), icon: Icons.insights),
-            const SizedBox(height: AppSpacing.md),
-            _AboutCard(result: r),
-          ],
-        );
-      }),
-    );
-  }
-
-  String _summary(RiskResult r) {
-    final up = r.featureContributions.where((f) => f.value >= 0.05).take(2).map((f) => f.indicator.longLabel);
-    final down = r.featureContributions.where((f) => f.value <= -0.05).map((f) => f.indicator.longLabel);
-    final first = up.isEmpty
-        ? 'No indicator strongly raised the risk for this assessment.'
-        : '${up.join(' and ')} had the strongest influence toward higher risk.';
-    final second = down.isEmpty ? '' : ' ${down.first} pulled toward lower risk.';
-    return '$first$second';
-  }
-}
-
-/// Plain-language strength of one contribution (presentation only).
-String _describe(double v) {
-  if (v >= 0.3) return 'Strong influence toward higher risk';
-  if (v >= 0.15) return 'Moderate influence toward higher risk';
-  if (v >= 0.05) return 'Slight influence toward higher risk';
-  if (v > -0.05) return 'Little influence on this result';
-  if (v > -0.15) return 'Slight influence toward lower risk';
-  return 'Influence toward lower risk';
-}
-
-class _Legend extends StatelessWidget {
-  const _Legend({required this.color, required this.label});
-
-  final Color color;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 14,
-          height: 8,
-          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(99)),
-        ),
-        const SizedBox(width: 6),
-        Text(label, style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
-      ],
-    );
-  }
-}
-
-class _ContributionRow extends StatelessWidget {
-  const _ContributionRow({required this.contribution, required this.valueText, required this.maxAbs});
-
-  final FeatureContribution contribution;
-  final String valueText;
-  final double maxAbs;
-
-  @override
-  Widget build(BuildContext context) {
-    final v = contribution.value;
-    final positive = v >= 0;
-    final frac = (v.abs() / maxAbs).clamp(0.03, 1.0).toDouble();
-    final color = positive ? AppColors.shapPositive : AppColors.shapNegative;
-    final description = _describe(v);
-
-    return Semantics(
-      label: '${contribution.indicator.longLabel}, $valueText. $description. SHAP value ${Fmt.signed(v)}.',
-      excludeSemantics: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(child: Text(contribution.indicator.longLabel, style: AppTextStyles.labelLg)),
-              const SizedBox(width: 8),
-              Text(valueText, style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 10,
-                  decoration:
-                      BoxDecoration(color: AppColors.surfaceContainer, borderRadius: BorderRadius.circular(99)),
-                  alignment: Alignment.centerLeft,
-                  child: FractionallySizedBox(
-                    widthFactor: frac,
-                    child: Container(
-                      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(99)),
+              const SizedBox(height: AppSpacing.md),
+              InfoNote(title: 'In short', text: framing.summary(r.featureContributions), icon: Icons.insights),
+              const SizedBox(height: 12),
+              AppCard(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ContributionLegend(framing: framing),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Longer bar = stronger influence. Sorted by influence.',
+                      style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
                     ),
-                  ),
+                    const SizedBox(height: 18),
+                    for (var i = 0; i < r.featureContributions.length; i++) ...[
+                      if (i > 0) const Divider(height: 28),
+                      ContributionBar(
+                        contribution: r.featureContributions[i],
+                        framing: framing,
+                        valueText: Fmt.indicator(r.featureContributions[i].indicator, assessment.indicators, s),
+                        maxAbs: scale,
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              const SizedBox(width: 10),
-              SizedBox(
-                width: 44,
-                child: Text(
-                  Fmt.signed(v),
-                  textAlign: TextAlign.end,
-                  style: AppTextStyles.labelSm.copyWith(
-                    color: AppColors.onSurfaceVariant,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
+              const SizedBox(height: 12),
+              _AboutCard(result: r, framing: framing),
             ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            description,
-            style: AppTextStyles.labelSm.copyWith(
-              color: positive && v >= 0.05 ? AppColors.primary : AppColors.onSurfaceVariant,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -205,12 +95,20 @@ class _ContributionRow extends StatelessWidget {
 
 /// Collapsed by default: method, model and demo-data notice.
 class _AboutCard extends StatelessWidget {
-  const _AboutCard({required this.result});
+  const _AboutCard({required this.result, required this.framing});
 
   final RiskResult result;
+  final ContributionFraming framing;
 
   @override
   Widget build(BuildContext context) {
+    final method = framing.relativeToPrediction
+        ? 'AIOVY uses SHAP (SHapley Additive exPlanations) to show how much each indicator moved the '
+            "model's probability for ${result.riskLevel.label}, compared with the model's average. Bars to the "
+            'right supported this level; bars to the left counted against it. The values are in probability '
+            'units, so a value of +0.10 moved the probability up by about 10 percentage points.'
+        : 'This explanation shows how much each indicator moved a prototype risk score toward higher or lower '
+            'risk. Longer bars mean a stronger influence.';
     return AppCard(
       padding: EdgeInsets.zero,
       child: Theme(
@@ -223,15 +121,12 @@ class _AboutCard extends StatelessWidget {
           collapsedIconColor: AppColors.onSurfaceVariant,
           leading: const IconTile(icon: Icons.info_outline, size: 36, iconSize: 18, radius: 10),
           title: Text('About this explanation', style: AppTextStyles.labelLg),
-          subtitle: Text('SHAP method, model and data',
-              style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
+          subtitle: Text(
+            'Method, model and data',
+            style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant),
+          ),
           children: [
-            Text(
-              'AIOVY uses SHAP (SHapley Additive exPlanations) to show how much each indicator moved this '
-              'prediction toward higher or lower risk compared with a typical patient. Longer bars mean a '
-              'stronger influence.',
-              style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant, height: 1.45),
-            ),
+            Text(method, style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
             const SizedBox(height: 12),
             Row(
               children: [
