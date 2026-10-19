@@ -20,6 +20,9 @@ class MockRiskClassifier implements RiskClassifier {
   String get modelName => 'Selected Model · Pending Evaluation';
 
   @override
+  bool get isDemo => true;
+
+  @override
   Future<RiskResult> classify(MaternalIndicators indicators) async {
     await Future<void>.delayed(latency);
     return evaluate(indicators);
