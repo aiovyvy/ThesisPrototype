@@ -143,23 +143,33 @@ def health():
 
 @app.post("/classify", response_model=ClassifyResponse)
 def classify(request: ClassifyRequest):
+    """Privacy: the request holds a patient's vital signs, so nothing logged
+    here may include it. Unexpected errors are caught and logged by type
+    only, because exception messages (from pandas, scikit-learn or SHAP) can
+    quote input values, and an uncaught exception's message would be written
+    to the server log by the framework."""
     model, classes = state["model"], state["classes"]
 
-    # Exact training column order
-    X = pd.DataFrame([[getattr(request, f) for f in uc.FEATURES]],
-                     columns=uc.FEATURES, dtype=float)
+    try:
+        # Exact training column order
+        X = pd.DataFrame([[getattr(request, f) for f in uc.FEATURES]],
+                         columns=uc.FEATURES, dtype=float)
 
-    probabilities = model.predict_proba(X)[0]
-    predicted = int(model.predict(X)[0])
+        probabilities = model.predict_proba(X)[0]
+        predicted = int(model.predict(X)[0])
 
-    # SHAP for the predicted class, in probability units (as in notebook 03)
-    explanation = uc.shap_explain(state["config"]["model"], model, state["explainer"], X)
-    contributions = explanation.values[0, :, predicted]
-    base_value = float(explanation.base_values[0, predicted])
+        # SHAP for the predicted class, in probability units (as in notebook 03)
+        explanation = uc.shap_explain(state["config"]["model"], model, state["explainer"], X)
+        contributions = explanation.values[0, :, predicted]
+        base_value = float(explanation.base_values[0, predicted])
+        error = abs(base_value + contributions.sum() - probabilities[predicted])
+    except Exception as exc:  # noqa: BLE001 - logged by type only, see docstring
+        log.error("Classification failed (%s); input not logged", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="Classification failed") from None
 
-    error = abs(base_value + contributions.sum() - probabilities[predicted])
     if not np.isfinite(error) or error > ADDITIVITY_TOLERANCE:
-        log.error("SHAP additivity check failed (error %.3g) for %s", error, request)
+        # The size of the mismatch is enough to investigate; never the input.
+        log.error("SHAP additivity check failed (error %.3g); input not logged", error)
         raise HTTPException(status_code=500, detail="SHAP additivity check failed")
 
     return ClassifyResponse(

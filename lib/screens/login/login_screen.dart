@@ -94,26 +94,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 6),
                   Text('Sign in to continue.', style: AppTextStyles.bodyLg.copyWith(color: AppColors.onSurfaceVariant)),
                   const SizedBox(height: AppSpacing.lg),
+                  // Before the fields: this sign-in checks nothing.
+                  const DemoAccessBanner(),
+                  const SizedBox(height: 12),
                   _card(settings),
-                  const SizedBox(height: AppSpacing.md),
-                  // Honest about what this sign-in is: no real authentication.
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(top: 1),
-                        child: Icon(Icons.science_outlined, size: 18, color: AppColors.onSurfaceVariant),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Prototype sign-in: any non-empty email and password works. '
-                          'Use demo records only, never real patient information.',
-                          style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
-                        ),
-                      ),
-                    ],
-                  ),
                   const SizedBox(height: AppSpacing.lg),
                   Text(
                     AppStrings.versionShort,
@@ -215,6 +199,51 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// States plainly that the sign-in is not real authentication.
+class DemoAccessBanner extends StatelessWidget {
+  const DemoAccessBanner({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      container: true,
+      label: 'Demo access. ${AppStrings.demoAccessNote}',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.riskModerateTint,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: AppColors.riskModerate.withAlpha(90)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 1),
+              child: Icon(Icons.lock_open_outlined, size: 20, color: AppColors.riskModerateText),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.demoAccess,
+                    style: AppTextStyles.labelLg.copyWith(color: AppColors.riskModerateText, letterSpacing: 0.8),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(AppStrings.demoAccessNote, style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurface)),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

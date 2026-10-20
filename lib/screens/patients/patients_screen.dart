@@ -62,6 +62,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
             SliverPadding(
               padding: AppLayout.page(context, top: AppSpacing.md, bottom: 0),
               sliver: SliverList.list(children: [
+                const PredictionModeNote(),
                 TextField(
                   controller: _search,
                   onChanged: (_) => setState(() {}),

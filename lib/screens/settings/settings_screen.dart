@@ -18,15 +18,23 @@ import '../../widgets/settings_widgets.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  Future<void> _confirmClearCache(BuildContext context) async {
+  /// Really removes this session's records (it used to only show a message).
+  Future<void> _confirmClearSession(BuildContext context) async {
+    final repository = AppScope.of(context).repository;
+    final n = repository.sessionAssessmentCount;
+    if (n == 0) {
+      AppNavigator.showSnack('Nothing to clear: no assessments were entered in this session.',
+          icon: Icons.info_outline);
+      return;
+    }
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         icon: const Icon(Icons.warning_rounded, color: AppColors.riskModerate, size: 32),
-        title: Text('Clear local cache?', style: AppTextStyles.headlineSm, textAlign: TextAlign.center),
+        title: Text('Clear session records?', style: AppTextStyles.headlineSm, textAlign: TextAlign.center),
         content: Text(
-          'This removes draft notes and session data from this device. '
-          '(Prototype: nothing is actually stored.)',
+          'Removes the $n ${n == 1 ? 'assessment' : 'assessments'} entered since the app was opened. '
+          'Only the synthetic demo records remain. This cannot be undone.',
           style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
         ),
         actions: [
@@ -34,12 +42,15 @@ class SettingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Clear Cache'),
+            child: const Text('Clear records'),
           ),
         ],
       ),
     );
-    if (ok == true) AppNavigator.showSnack('Local cache cleared');
+    if (ok == true) {
+      repository.clearSession();
+      AppNavigator.showSnack('Session records removed');
+    }
   }
 
   void _showAdvisory(BuildContext context) {
@@ -54,8 +65,8 @@ class SettingsScreen extends StatelessWidget {
           children: [
             Text(
               'AIOVY is an academic clinical decision-support prototype for maternal health risk classification. '
-              'It does not replace professional clinical judgment or medical diagnosis. All patient records and '
-              'model outputs in this build are demonstration data.',
+              'It does not replace professional clinical judgment or medical diagnosis. All patient records are '
+              'synthetic. Results marked "Simulated" come from a built-in demo classifier, not the trained model.',
               style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant, height: 1.45),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -133,18 +144,22 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             const SectionLabel('Privacy & Data'),
             SettingsGroup(children: [
+              // No lock icon: nothing here is encrypted or access-controlled.
               const SettingsRow(
-                icon: Icons.lock_outline,
+                icon: Icons.memory_outlined,
                 title: 'Data Storage',
-                subtitle: 'Demo records only, kept in memory on this device',
+                subtitle: 'In memory only; lost when the app closes. Not encrypted. Synthetic data only.',
               ),
               SettingsRow(
                 icon: Icons.cleaning_services_outlined,
-                title: 'Clear Local Cache',
-                subtitle: 'Remove drafts and session data',
+                title: 'Clear Session Records',
+                subtitle: scope.repository.sessionAssessmentCount == 0
+                    ? 'No assessments entered in this session'
+                    : '${scope.repository.sessionAssessmentCount} entered in this session · also cleared on sign-out',
                 showChevron: true,
-                onTap: () => _confirmClearCache(context),
+                onTap: () => _confirmClearSession(context),
               ),
+              _PredictionSourceRow(isDemo: scope.classifier.isDemo, modelName: scope.classifier.modelName),
             ]),
             const SizedBox(height: AppSpacing.lg),
             const SectionLabel('About'),
@@ -180,6 +195,26 @@ class SettingsScreen extends StatelessWidget {
           ],
         );
       }),
+    );
+  }
+}
+
+/// Which classifier produces results in this build: the built-in simulation
+/// or the trained model behind the API.
+class _PredictionSourceRow extends StatelessWidget {
+  const _PredictionSourceRow({required this.isDemo, required this.modelName});
+
+  final bool isDemo;
+  final String modelName;
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsRow(
+      icon: isDemo ? Icons.science_outlined : Icons.model_training,
+      title: 'Predictions',
+      subtitle: isDemo
+          ? 'Simulated by the built-in demo classifier, not the trained model'
+          : 'Trained model ($modelName) via the AIOVY API. Seeded demo records stay simulated.',
     );
   }
 }

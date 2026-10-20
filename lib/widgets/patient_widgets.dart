@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/constants/app_strings.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_spacing.dart';
 import '../core/theme/app_text_styles.dart';
@@ -9,6 +10,8 @@ import '../models/assessment.dart';
 import '../models/maternal_indicators.dart';
 import '../models/patient.dart';
 import '../models/risk_level.dart';
+import '../models/risk_result.dart';
+import '../state/app_scope.dart';
 import 'common.dart';
 import 'risk_badge.dart';
 
@@ -58,10 +61,12 @@ class PatientListRow extends StatelessWidget {
       if (m != null) 'BP ${m.systolic}/${m.diastolic}',
       if (m != null) 'HR ${m.heartRate}',
     ].map(keepTogether).join(' · ');
+    final simulated = latest != null && needsSimulatedTag(context, latest.result);
 
     return Semantics(
       button: true,
       label: 'Patient ${patient.id}, ${patient.age} years, ${level?.label ?? 'not yet assessed'}'
+          '${simulated ? ' (simulated)' : ''}'
           '${m != null ? ', blood pressure ${m.systolic} over ${m.diastolic}, heart rate ${m.heartRate}' : ''}'
           '${latest != null ? ', assessed ${Fmt.relative(latest.timestamp, withTime: false)}' : ''}',
       excludeSemantics: true,
@@ -101,6 +106,7 @@ class PatientListRow extends StatelessWidget {
                         meta,
                         style: AppTextStyles.bodySm.tabular.copyWith(color: AppColors.onSurfaceVariant),
                       ),
+                      if (simulated) ...[const SizedBox(height: 2), const SimulatedTag()],
                     ],
                   ),
                 ),
@@ -128,9 +134,10 @@ class AssessmentListRow extends StatelessWidget {
     final a = assessment;
     final level = a.result.riskLevel;
     final m = a.indicators;
+    final simulated = needsSimulatedTag(context, a.result);
     return Semantics(
       button: true,
-      label: 'Patient ${a.patientId}, ${m.age} years, ${level.label}, '
+      label: 'Patient ${a.patientId}, ${m.age} years, ${level.label}${simulated ? ' (simulated)' : ''}, '
           'assessed ${Fmt.relative(a.timestamp)}. Blood pressure ${m.systolic} over ${m.diastolic}.',
       excludeSemantics: true,
       child: InkWell(
@@ -151,6 +158,7 @@ class AssessmentListRow extends StatelessWidget {
                         [Fmt.relative(a.timestamp), 'BP ${m.systolic}/${m.diastolic}'].map(keepTogether).join(' · '),
                         style: AppTextStyles.bodySm.tabular.copyWith(color: AppColors.onSurfaceVariant),
                       ),
+                      if (simulated) ...[const SizedBox(height: 2), const SimulatedTag()],
                     ],
                   ),
                 ),
@@ -252,6 +260,61 @@ class RiskChangeMarker extends StatelessWidget {
           Icon(icon, size: 14, color: AppColors.onSurfaceVariant),
           const SizedBox(width: 2),
           Text(text, style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
+        ],
+      ),
+    );
+  }
+}
+
+/// True when [result] is simulated but appears alongside trained-model
+/// results (API mode), so it needs its own marker. In demo mode everything
+/// is simulated and [PredictionModeNote] says so once instead.
+bool needsSimulatedTag(BuildContext context, RiskResult result) =>
+    result.isDemo && !AppScope.of(context).classifier.isDemo;
+
+/// Small "Simulated" marker for one result in a list.
+class SimulatedTag extends StatelessWidget {
+  const SimulatedTag({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.science_outlined, size: 13, color: AppColors.outline),
+        const SizedBox(width: 3),
+        Text(
+          AppStrings.simulatedShort,
+          style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
+        ),
+      ],
+    );
+  }
+}
+
+/// One line, shown only in demo mode, saying every prediction is simulated.
+class PredictionModeNote extends StatelessWidget {
+  const PredictionModeNote({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!AppScope.of(context).classifier.isDemo) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 1),
+            child: Icon(Icons.science_outlined, size: 18, color: AppColors.riskModerateText),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Demo mode: every prediction is simulated by a built-in classifier, not the trained model.',
+              style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+            ),
+          ),
         ],
       ),
     );

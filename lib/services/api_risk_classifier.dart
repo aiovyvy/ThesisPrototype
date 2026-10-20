@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:http/http.dart' as http;
 
 import '../models/maternal_indicators.dart';
@@ -21,16 +22,27 @@ import 'risk_classifier.dart';
 /// The request uses canonical units (mmol/L, °F) whatever the display
 /// units in Settings. `feature_contributions` are SHAP values for the
 /// predicted class, in probability units.
+///
+/// Transport security: the request carries vital signs, so a release build
+/// refuses to send it over plain HTTP ([requireHttps]). Debug builds allow
+/// `http://` for the local development server. There is no authentication
+/// on this API yet (see docs/security-limitations.md).
 class ApiRiskClassifier implements RiskClassifier {
   ApiRiskClassifier({
     required this.baseUrl,
     http.Client? client,
     this.timeout = const Duration(seconds: 10),
-  }) : _client = client ?? http.Client();
+    bool? requireHttps,
+  })  : _client = client ?? http.Client(),
+        requireHttps = requireHttps ?? kReleaseMode;
 
   final Uri baseUrl;
   final Duration timeout;
   final http.Client _client;
+
+  /// When true, requests to a non-HTTPS [baseUrl] are refused before
+  /// anything is sent. Defaults to true in release builds.
+  final bool requireHttps;
 
   @override
   String get modelName => 'Random Forest (UCI)';
@@ -40,6 +52,12 @@ class ApiRiskClassifier implements RiskClassifier {
 
   @override
   Future<RiskResult> classify(MaternalIndicators indicators) async {
+    if (requireHttps && baseUrl.scheme != 'https') {
+      throw const RiskClassifierException(
+        'This build only sends patient measurements over an encrypted (HTTPS) connection, '
+        'but the risk model server address is not HTTPS. Nothing was sent.',
+      );
+    }
     final http.Response res;
     try {
       res = await _client
@@ -50,12 +68,10 @@ class ApiRiskClassifier implements RiskClassifier {
           )
           .timeout(timeout);
     } on TimeoutException {
-      throw RiskClassifierException(
-          'The risk model server did not respond within ${timeout.inSeconds} seconds. '
+      throw RiskClassifierException('The risk model server did not respond within ${timeout.inSeconds} seconds. '
           'Check that the AIOVY API is running at $baseUrl.');
     } on http.ClientException {
-      throw RiskClassifierException(
-          'Could not reach the risk model server at $baseUrl. '
+      throw RiskClassifierException('Could not reach the risk model server at $baseUrl. '
           'Check that the AIOVY API is running and that this device is on the same network.');
     }
 

@@ -7,10 +7,47 @@ import '../mock/mock_patients.dart';
 
 /// In-memory patient store. Replace the body of these methods with a local
 /// database or API calls later – screens only talk to this class.
+///
+/// Privacy: nothing is written to disk, so everything entered is lost when
+/// the app closes. Within a running app, [clearSession] removes everything
+/// saved since start-up (used on sign-out), leaving only the synthetic
+/// demo records.
 class PatientRepository extends ChangeNotifier {
-  PatientRepository({List<Patient>? seed}) : _patients = seed ?? MockPatients.build();
+  PatientRepository({List<Patient>? seed})
+      : _seed = seed,
+        _patients = _fresh(seed);
 
+  /// A custom seed (tests), or null for the synthetic demo cohort.
+  final List<Patient>? _seed;
   final List<Patient> _patients;
+
+  /// IDs of assessments saved during this session (not part of the seed).
+  final Set<String> _sessionIds = {};
+
+  static List<Patient> _fresh(List<Patient>? seed) =>
+      seed == null ? MockPatients.build() : [for (final p in seed) _copy(p)];
+
+  static Patient _copy(Patient p) => Patient(
+        id: p.id,
+        age: p.age,
+        gestationalAge: p.gestationalAge,
+        clinicalNote: p.clinicalNote,
+        assessments: List.of(p.assessments),
+      );
+
+  /// Number of assessments saved since start-up or the last [clearSession].
+  int get sessionAssessmentCount => _sessionIds.length;
+
+  /// Discards every assessment and patient saved during this session and
+  /// restores the original synthetic records. Nothing is kept anywhere else
+  /// (there is no disk or server copy to delete).
+  void clearSession() {
+    _patients
+      ..clear()
+      ..addAll(_fresh(_seed));
+    _sessionIds.clear();
+    notifyListeners();
+  }
 
   List<Patient> get patients {
     final list = List<Patient>.of(_patients);
@@ -37,8 +74,7 @@ class PatientRepository extends ChangeNotifier {
   }
 
   List<Assessment> assessmentsOn(DateTime day) => allAssessments
-      .where((a) =>
-          a.timestamp.year == day.year && a.timestamp.month == day.month && a.timestamp.day == day.day)
+      .where((a) => a.timestamp.year == day.year && a.timestamp.month == day.month && a.timestamp.day == day.day)
       .toList();
 
   int countByRisk(RiskLevel level) => _patients.where((p) => p.currentRisk == level).length;
@@ -64,6 +100,7 @@ class PatientRepository extends ChangeNotifier {
     patient.assessments.removeWhere((a) => a.id == assessment.id);
     patient.assessments.insert(0, assessment);
     patient.assessments.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    _sessionIds.add(assessment.id);
     notifyListeners();
   }
 

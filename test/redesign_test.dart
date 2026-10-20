@@ -190,7 +190,8 @@ void main() {
 
       await tester.pumpWidget(testApp(const PatientProfileScreen(patientId: 'P-0014')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('LATEST MODEL ESTIMATE'), findsOneWidget);
+      // P-0014 is a seeded record, scored by the demo classifier.
+      expect(find.textContaining('LATEST SIMULATED ESTIMATE'), findsOneWidget);
       expect(find.textContaining('CURRENT STATUS'), findsNothing);
     });
 

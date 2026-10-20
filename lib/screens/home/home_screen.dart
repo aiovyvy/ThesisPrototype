@@ -49,6 +49,7 @@ class HomeScreen extends StatelessWidget {
                 counts: {for (final l in RiskLevel.values.reversed) l: count(l)},
               ),
               const SizedBox(height: AppSpacing.md),
+              const PredictionModeNote(),
               _StartAssessment(onTap: () => AppNavigator.push(context, const AssessmentInputScreen())),
               const SizedBox(height: AppSpacing.lg),
               SectionTitle(

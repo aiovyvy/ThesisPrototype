@@ -129,7 +129,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                   ),
                                   const SizedBox(height: AppSpacing.md),
                                   Text(
-                                    'Decision support only · ${AppStrings.versionShort}',
+                                    'Decision support only · Demo access · ${AppStrings.versionShort}',
                                     textAlign: TextAlign.center,
                                     style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(
                                           color: AppColors.outline,

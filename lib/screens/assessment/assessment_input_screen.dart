@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -252,6 +253,9 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
                     padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.lg),
                     children: [
                       _PatientStrip(patientId: _patientId, isNew: _isNewPatient, action: formAction),
+                      const SizedBox(height: 10),
+                      // The one place real patient data could be typed in.
+                      const _SyntheticOnlyNote(),
                       if (_prefilledFrom != null) ...[
                         const SizedBox(height: 12),
                         InfoNote(
@@ -445,6 +449,33 @@ class _AssessBar extends StatelessWidget {
           PrimaryButton(label: 'Assess risk', trailingIcon: Icons.arrow_forward, onPressed: onAssess),
         ],
       ),
+    );
+  }
+}
+
+/// Reminds the user, where values are entered, that only synthetic data may
+/// be used. (The form has no name or free-text fields and IDs are generated,
+/// so identifying details cannot be typed in; this covers the vital signs.)
+class _SyntheticOnlyNote extends StatelessWidget {
+  const _SyntheticOnlyNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 1),
+          child: Icon(Icons.shield_outlined, size: 18, color: AppColors.riskModerateText),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            AppStrings.syntheticDataOnly,
+            style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+          ),
+        ),
+      ],
     );
   }
 }

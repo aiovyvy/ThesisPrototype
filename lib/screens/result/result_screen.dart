@@ -171,7 +171,10 @@ class ResultScreen extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Estimated by ${r.modelName}. ${AppStrings.decisionNotice}',
+                          r.isDemo
+                              ? 'Simulated by the built-in demo classifier, not the trained model. '
+                                  '${AppStrings.decisionNotice}'
+                              : 'Estimated by ${r.modelName}. ${AppStrings.decisionNotice}',
                           style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
                         ),
                       ),
@@ -270,11 +273,12 @@ class _Verdict extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          Text('MODEL ESTIMATE', style: AppTextStyles.overline),
+          Text(r.isDemo ? 'SIMULATED ESTIMATE' : 'MODEL ESTIMATE', style: AppTextStyles.overline),
           const SizedBox(height: 2),
           Semantics(
             header: true,
-            label: 'Model estimate: ${level.label}, ${Fmt.percent(p)} probability.',
+            label:
+                '${r.isDemo ? 'Simulated estimate' : 'Model estimate'}: ${level.label}, ${Fmt.percent(p)} probability.',
             excludeSemantics: true,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,

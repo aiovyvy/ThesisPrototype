@@ -18,12 +18,20 @@ import '../settings/settings_screen.dart';
 class DoctorProfileScreen extends StatelessWidget {
   const DoctorProfileScreen({super.key});
 
+  /// Signing out also clears this session's records, so the next person to
+  /// use the device does not see them (the app keeps nothing on disk).
   Future<void> _signOut(BuildContext context) async {
+    final repository = AppScope.of(context).repository;
+    final n = repository.sessionAssessmentCount;
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Sign out of workstation?', style: AppTextStyles.headlineSm),
-        content: Text('You will return to the clinical sign-in screen.',
+        content: Text(
+            n == 0
+                ? 'You will return to the sign-in screen.'
+                : 'The $n ${n == 1 ? 'assessment' : 'assessments'} entered in this session will be removed '
+                    'from this device. Only the synthetic demo records remain.',
             style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
@@ -32,6 +40,7 @@ class DoctorProfileScreen extends StatelessWidget {
       ),
     );
     if (ok == true && context.mounted) {
+      repository.clearSession();
       AppNavigator.currentTab.value = ShellTab.home;
       AppNavigator.resetTo(context, const LoginScreen());
     }

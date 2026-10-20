@@ -155,7 +155,11 @@ class _StatusCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            latest == null ? 'LATEST MODEL ESTIMATE' : 'LATEST MODEL ESTIMATE · ${Fmt.relative(latest.timestamp)}',
+            // Say which kind of estimate this is, in every mode.
+            [
+              latest != null && latest.result.isDemo ? 'LATEST SIMULATED ESTIMATE' : 'LATEST MODEL ESTIMATE',
+              if (latest != null) Fmt.relative(latest.timestamp),
+            ].join(' · '),
             style: AppTextStyles.overline,
           ),
           const SizedBox(height: 4),
@@ -284,6 +288,7 @@ class _HistoryRow extends StatelessWidget {
                           ],
                         ),
                         if (prev != null) RiskChangeMarker(current: level, previous: prev),
+                        if (needsSimulatedTag(context, a.result)) const SimulatedTag(),
                       ],
                     ),
                     const SizedBox(height: 2),

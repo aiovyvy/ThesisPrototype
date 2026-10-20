@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -56,6 +57,17 @@ class ShapScreen extends StatelessWidget {
                 ),
                 style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
               ),
+              if (r.isDemo) ...[
+                const SizedBox(height: 10),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Pill(
+                    text: AppStrings.demoOutputTag,
+                    icon: Icons.science_outlined,
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  ),
+                ),
+              ],
               const SizedBox(height: AppSpacing.md),
               InfoNote(title: 'In short', text: framing.summary(r.featureContributions), icon: Icons.insights),
               const SizedBox(height: 12),
@@ -132,7 +144,12 @@ class _AboutCard extends StatelessWidget {
               children: [
                 const Icon(Icons.model_training, size: 17, color: AppColors.onSurfaceVariant),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Model: ${result.modelName}', style: AppTextStyles.labelMd)),
+                Expanded(
+                  child: Text(
+                    result.isDemo ? 'Source: built-in demo classifier (simulated)' : 'Model: ${result.modelName}',
+                    style: AppTextStyles.labelMd,
+                  ),
+                ),
               ],
             ),
             if (result.isDemo) ...[

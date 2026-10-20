@@ -63,6 +63,20 @@ API and checks that the predicted class and all three probabilities match the no
 predictions. It ends with `PASS` (exit code 0) or `FAIL` and the failing rows. Use
 `--url http://<address>:8000` to check a different address.
 
+## 2b. Privacy tests
+
+The API must never write patient vital signs to its logs. With the venv set up (step 1):
+
+```bat
+cd ml_model\uci
+.venv\Scripts\python -m unittest api.test_api_privacy -v
+```
+
+These tests load the real model. They check that the documented example still returns the same result, that a
+failed SHAP check and an unexpected error are logged **without** the input values, and that validation errors do not
+echo the input. See `docs/security-limitations.md` for what the API does **not** protect yet: it has no
+authentication, and HTTP is unencrypted.
+
 ## 3. Run the Flutter app against the API
 
 From the project root (the folder with `pubspec.yaml`). Without `USE_API=true` the app uses the
@@ -79,7 +93,8 @@ for example `192.168.1.20`. Check it first by opening `http://<PC IP>:8000/healt
 If that does not load, the firewall rule or the network is blocking it. Guest and university Wi-Fi
 networks often block device-to-device traffic.
 
-Plain HTTP is allowed only in Android **debug** builds (`android/app/src/debug/AndroidManifest.xml`),
+Use synthetic data only: plain HTTP is unencrypted on the network. A release build of the app refuses to send
+measurements to a non-HTTPS address. Plain HTTP is allowed only in Android **debug** builds (`android/app/src/debug/AndroidManifest.xml`),
 which is what `flutter run` uses. Release builds need an HTTPS API address.
 
 If the server cannot be reached, or does not answer within 10 seconds, the processing screen shows the
