@@ -222,6 +222,9 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Read here, above the Scaffold: Scaffold removes the keyboard inset from
+    // the MediaQuery its body sees.
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     return PopScope(
       canPop: !_hasEdits,
       onPopInvokedWithResult: (didPop, _) {
@@ -236,9 +239,9 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
             IndicatorFieldData f(Indicator i) => _field(i, s, statuses);
 
             final Widget? formAction = _hasAnyValue
-                ? LinkButton(label: 'Clear all', leadingIcon: Icons.backspace_outlined, onPressed: _clearAll)
+                ? LinkButton(label: 'Clear all', color: AppColors.onSurfaceVariant, onPressed: _clearAll)
                 : _isNewPatient
-                    ? LinkButton(label: 'Use sample values', leadingIcon: Icons.science_outlined, onPressed: _fillDemo)
+                    ? LinkButton(label: 'Use sample values', color: AppColors.onSurfaceVariant, onPressed: _fillDemo)
                     : null;
 
             return Column(
@@ -246,14 +249,9 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
                 Expanded(
                   child: ListView(
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.margin,
-                      AppSpacing.md,
-                      AppSpacing.margin,
-                      AppSpacing.lg,
-                    ),
+                    padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.lg),
                     children: [
-                      _PatientStrip(patientId: _patientId, isNew: _isNewPatient),
+                      _PatientStrip(patientId: _patientId, isNew: _isNewPatient, action: formAction),
                       if (_prefilledFrom != null) ...[
                         const SizedBox(height: 12),
                         InfoNote(
@@ -266,18 +264,6 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
                         ),
                       ],
                       const SizedBox(height: AppSpacing.md),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Enter all six values.',
-                              style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
-                            ),
-                          ),
-                          if (formAction != null) formAction,
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
                       _Group(title: 'Mother', children: [IndicatorFieldRow(data: f(Indicator.age))]),
                       const SizedBox(height: 12),
                       _Group(
@@ -295,16 +281,11 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
                           IndicatorFieldRow(data: f(Indicator.heartRate)),
                         ],
                       ),
-                      const SizedBox(height: AppSpacing.md),
-                      Text(
-                        'AIOVY gives decision support only. The clinical decision stays with you and your care team.',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
-                      ),
                     ],
                   ),
                 ),
                 _AssessBar(
+                  keyboardOpen: keyboardOpen,
                   statuses: [for (final i in Indicator.values) statuses[i]!],
                   showErrors: _submitted,
                   onAssess: () => _submit(s),
@@ -353,19 +334,18 @@ class _Group extends StatelessWidget {
   }
 }
 
-/// Patient context in one line.
+/// Who is being assessed, with the form-level action (sample / clear).
 class _PatientStrip extends StatelessWidget {
-  const _PatientStrip({required this.patientId, required this.isNew});
+  const _PatientStrip({required this.patientId, required this.isNew, this.action});
 
   final String patientId;
   final bool isNew;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const IconTile(icon: Icons.badge_outlined, size: 40, iconSize: 20, circle: true),
-        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -375,12 +355,13 @@ class _PatientStrip extends StatelessWidget {
                 child: Text('Patient $patientId', style: AppTextStyles.headlineSm),
               ),
               Text(
-                isNew ? 'New record · ID assigned automatically' : 'Existing record',
+                isNew ? 'New record' : 'Existing record',
                 style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
               ),
             ],
           ),
         ),
+        if (action != null) action!,
       ],
     );
   }
@@ -392,13 +373,21 @@ class _PatientStrip extends StatelessWidget {
 /// them and moves focus to the first one, which is easier to understand than
 /// a greyed-out button.
 class _AssessBar extends StatelessWidget {
-  const _AssessBar({required this.statuses, required this.showErrors, required this.onAssess});
+  const _AssessBar({
+    required this.statuses,
+    required this.showErrors,
+    required this.onAssess,
+    required this.keyboardOpen,
+  });
 
   final List<FieldStatus> statuses;
 
   /// True after a submit attempt: incomplete state is shown as an error.
   final bool showErrors;
   final VoidCallback onAssess;
+
+  /// While the keyboard is up, space is scarce: show only the button.
+  final bool keyboardOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -417,40 +406,42 @@ class _AssessBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Semantics(
-            liveRegion: true,
-            label: ready
-                ? 'All $total values valid. Ready to assess.'
-                : '$validCount of $total values valid.${error ? ' Check the highlighted values.' : ''}',
-            excludeSemantics: true,
-            child: Row(
-              children: [
-                for (var i = 0; i < total; i++) ...[
-                  if (i > 0) const SizedBox(width: 4),
-                  Expanded(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      height: 4,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(99),
-                        color: statuses[i] == FieldStatus.valid
-                            ? AppColors.riskLow
-                            : (showErrors ? AppColors.error.withAlpha(110) : AppColors.surfaceHigh),
+          if (!keyboardOpen) ...[
+            Semantics(
+              liveRegion: true,
+              label: ready
+                  ? 'All $total values valid. Ready to assess.'
+                  : '$validCount of $total values valid.${error ? ' Check the highlighted values.' : ''}',
+              excludeSemantics: true,
+              child: Row(
+                children: [
+                  for (var i = 0; i < total; i++) ...[
+                    if (i > 0) const SizedBox(width: 4),
+                    Expanded(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        height: 4,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(99),
+                          color: statuses[i] == FieldStatus.valid
+                              ? AppColors.sage
+                              : (showErrors ? AppColors.error.withAlpha(110) : AppColors.surfaceHigh),
+                        ),
                       ),
+                    ),
+                  ],
+                  const SizedBox(width: 12),
+                  Text(
+                    statusText,
+                    style: AppTextStyles.labelSm.copyWith(
+                      color: ready ? AppColors.sageText : (error ? AppColors.error : AppColors.onSurfaceVariant),
                     ),
                   ),
                 ],
-                const SizedBox(width: 12),
-                Text(
-                  statusText,
-                  style: AppTextStyles.labelSm.copyWith(
-                    color: ready ? AppColors.riskLow : (error ? AppColors.error : AppColors.onSurfaceVariant),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 10),
+          ],
           PrimaryButton(label: 'Assess risk', trailingIcon: Icons.arrow_forward, onPressed: onAssess),
         ],
       ),

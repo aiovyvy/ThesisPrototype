@@ -160,7 +160,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
     final done = _step >= 3;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.xl, AppSpacing.margin, AppSpacing.lg),
+      padding: AppLayout.page(context, top: AppSpacing.xl, bottom: AppSpacing.lg),
       children: [
         Center(child: _Spinner(done: done)),
         const SizedBox(height: AppSpacing.lg),
@@ -220,7 +220,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
 
   Widget _failure(String message) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.xl, AppSpacing.margin, AppSpacing.lg),
+      padding: AppLayout.page(context, top: AppSpacing.xl, bottom: AppSpacing.lg),
       children: [
         const Center(
           child: IconTile(

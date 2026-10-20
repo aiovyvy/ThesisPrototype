@@ -214,7 +214,8 @@ class ContributionBar extends StatelessWidget {
               ),
             ],
           ),
-          if (showDescription) ...[
+          // "Little effect" rows need no sentence; the bar and value say it.
+          if (showDescription && strong) ...[
             const SizedBox(height: 6),
             Text(
               description,
@@ -238,9 +239,12 @@ double contributionScale(List<FeatureContribution> contributions) =>
 /// level is emphasised; the others are shown in neutral grey so colour
 /// still means "this is the result".
 class ProbabilityBars extends StatelessWidget {
-  const ProbabilityBars({super.key, required this.result});
+  const ProbabilityBars({super.key, required this.result, this.trackColor = AppColors.surfaceLow});
 
   final RiskResult result;
+
+  /// Bar background; white when the bars sit on a tinted surface.
+  final Color trackColor;
 
   @override
   Widget build(BuildContext context) {
@@ -274,7 +278,7 @@ class ProbabilityBars extends StatelessWidget {
                 height: predicted ? 12 : 8,
                 child: Stack(
                   children: [
-                    const Positioned.fill(child: ColoredBox(color: AppColors.surfaceLow)),
+                    Positioned.fill(child: ColoredBox(color: trackColor)),
                     FractionallySizedBox(
                       widthFactor: p.clamp(0.0, 1.0).toDouble(),
                       heightFactor: 1,

@@ -146,8 +146,10 @@ class _Feature extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          IconTile(
-              icon: icon, size: 36, iconSize: 20, background: AppColors.primarySoft, foreground: AppColors.primary),
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: ExcludeSemantics(child: Icon(icon, size: 22, color: AppColors.primary)),
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: MergeSemantics(

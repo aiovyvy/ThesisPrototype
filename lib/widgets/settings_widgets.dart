@@ -20,8 +20,7 @@ class SettingsGroup extends StatelessWidget {
         children: [
           for (var i = 0; i < children.length; i++) ...[
             children[i],
-            if (i < children.length - 1)
-              const Divider(height: 1, thickness: 1, indent: 72, color: AppColors.divider),
+            if (i < children.length - 1) const Divider(height: 1, thickness: 1, indent: 72, color: AppColors.divider),
           ],
         ],
       ),
@@ -39,7 +38,7 @@ class SettingsRow extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.showChevron = false,
-    this.iconBackground = const Color(0xFFF0E8EB),
+    this.iconBackground = AppColors.surfaceLow,
     this.titleStyle,
   });
 

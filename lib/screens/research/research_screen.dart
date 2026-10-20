@@ -21,7 +21,7 @@ class ResearchScreen extends StatelessWidget {
     return Scaffold(
       appBar: const AppHeader(title: 'How AIOVY Works', style: HeaderStyle.backCentered),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.md, AppSpacing.margin, AppSpacing.xl),
+        padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.xl),
         children: [
           const InfoNote(
             text: 'Research Architecture · Model evaluation pending thesis experiments.',
@@ -128,8 +128,7 @@ class ResearchScreen extends StatelessWidget {
                   Text.rich(
                     TextSpan(children: [
                       TextSpan(text: '${data.references[i].title} '),
-                      TextSpan(
-                          text: data.references[i].venue, style: const TextStyle(fontStyle: FontStyle.italic)),
+                      TextSpan(text: data.references[i].venue, style: const TextStyle(fontStyle: FontStyle.italic)),
                     ]),
                     style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant, height: 1.45),
                   ),
@@ -259,8 +258,7 @@ class _Pipeline extends StatelessWidget {
                             children: [
                               Row(
                                 children: [
-                                  Text('${i + 1}',
-                                      style: AppTextStyles.labelSm.copyWith(color: AppColors.primary)),
+                                  Text('${i + 1}', style: AppTextStyles.labelSm.copyWith(color: AppColors.primary)),
                                   const SizedBox(width: 6),
                                   Expanded(child: Text(stages[i].title, style: AppTextStyles.labelLg)),
                                 ],
@@ -402,7 +400,8 @@ class _SelectedModelCard extends StatelessWidget {
                 Text('SELECTED MODEL', style: AppTextStyles.overline.copyWith(fontSize: 11)),
                 const SizedBox(height: 2),
                 Text(selected ?? AppStrings.pendingEvaluation,
-                    style: AppTextStyles.titleMd.copyWith(color: selected == null ? AppColors.onSurfaceVariant : AppColors.primary)),
+                    style: AppTextStyles.titleMd
+                        .copyWith(color: selected == null ? AppColors.onSurfaceVariant : AppColors.primary)),
               ],
             ),
           ),

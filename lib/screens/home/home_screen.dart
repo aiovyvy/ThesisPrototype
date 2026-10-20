@@ -36,28 +36,30 @@ class HomeScreen extends StatelessWidget {
           void openPatient(String id) => AppNavigator.push(context, PatientProfileScreen(patientId: id));
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.margin, 20, AppSpacing.margin, AppSpacing.xl),
+            padding: AppLayout.page(context, top: 20, bottom: AppSpacing.xl),
             children: [
               Text(
                 '${Fmt.greeting(now)}, ${scope.clinician.displayName}',
                 style: AppTextStyles.headlineMd,
               ),
-              const SizedBox(height: 2),
-              Text(Fmt.date(now), style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+              const SizedBox(height: 4),
+              _TodaySummary(
+                date: Fmt.date(now),
+                total: today.length,
+                counts: {for (final l in RiskLevel.values.reversed) l: count(l)},
+              ),
               const SizedBox(height: AppSpacing.md),
               _StartAssessment(onTap: () => AppNavigator.push(context, const AssessmentInputScreen())),
               const SizedBox(height: AppSpacing.lg),
               SectionTitle(
                 'Needs review',
-                caption: needsReview.isEmpty ? null : 'Latest result is High Risk',
+                caption: needsReview.isEmpty ? null : 'Latest model estimate is High Risk',
               ),
               const SizedBox(height: AppSpacing.sm),
               if (needsReview.isEmpty)
-                const InfoNote(
-                  icon: Icons.check_circle_outline,
-                  text: 'No patient currently has a High Risk result.',
-                  background: AppColors.riskLowTint,
-                  iconColor: AppColors.riskLow,
+                Text(
+                  'No patient currently has a High Risk estimate.',
+                  style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
                 )
               else
                 GroupedList(
@@ -65,13 +67,6 @@ class HomeScreen extends StatelessWidget {
                     for (final p in needsReview) PatientListRow(patient: p, onTap: () => openPatient(p.id)),
                   ],
                 ),
-              const SizedBox(height: AppSpacing.lg),
-              _TodayOverview(
-                total: today.length,
-                low: count(RiskLevel.low),
-                moderate: count(RiskLevel.moderate),
-                high: count(RiskLevel.high),
-              ),
               const SizedBox(height: AppSpacing.lg),
               SectionTitle(
                 'Recent assessments',
@@ -139,13 +134,6 @@ class _StartAssessmentState extends State<_StartAssessment> {
               padding: const EdgeInsets.fromLTRB(AppSpacing.md, 18, AppSpacing.md, 18),
               child: Row(
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(color: Colors.white.withAlpha(38), shape: BoxShape.circle),
-                    child: const Icon(Icons.add, size: 28, color: Colors.white),
-                  ),
-                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,89 +158,38 @@ class _StartAssessmentState extends State<_StartAssessment> {
   }
 }
 
-/// Today's assessments: total and a count per risk level.
-class _TodayOverview extends StatelessWidget {
-  const _TodayOverview({required this.total, required this.low, required this.moderate, required this.high});
+/// One line under the greeting: the date, today's assessment count, and how
+/// many were estimated at each level. Plain text, no tiles.
+class _TodaySummary extends StatelessWidget {
+  const _TodaySummary({required this.date, required this.total, required this.counts});
 
+  final String date;
   final int total;
-  final int low;
-  final int moderate;
-  final int high;
+  final Map<RiskLevel, int> counts;
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Semantics(
-            label: 'Today: $total assessments',
-            excludeSemantics: true,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Expanded(child: Text('Today', style: AppTextStyles.labelLg)),
-                Text('$total', style: AppTextStyles.metric),
-                const SizedBox(width: 6),
-                Text(
-                  total == 1 ? 'assessment' : 'assessments',
-                  style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(child: _Count(level: RiskLevel.high, count: high)),
-              const SizedBox(width: 8),
-              Expanded(child: _Count(level: RiskLevel.moderate, count: moderate)),
-              const SizedBox(width: 8),
-              Expanded(child: _Count(level: RiskLevel.low, count: low)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Count extends StatelessWidget {
-  const _Count({required this.level, required this.count});
-
-  final RiskLevel level;
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
+    final meta = AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant);
     return Semantics(
-      label: '${level.label}: $count',
+      label: '$date. $total ${total == 1 ? 'assessment' : 'assessments'} today: '
+          '${counts.entries.map((e) => '${e.value} ${e.key.label}').join(', ')}.',
       excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-        decoration: BoxDecoration(color: level.tint, borderRadius: BorderRadius.circular(AppRadius.md)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text('$date · $total today', style: meta),
+          for (final e in counts.entries)
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(level.icon, size: 15, color: level.color),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    level.shortLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.labelSm.copyWith(color: level.textColor),
-                  ),
-                ),
+                Icon(e.key.icon, size: 14, color: e.key.color),
+                const SizedBox(width: 3),
+                Text('${e.value} ${e.key.shortLabel}', style: meta.tabular),
               ],
             ),
-            const SizedBox(height: 4),
-            Text('$count', style: AppTextStyles.headlineMd.tabular.copyWith(color: level.textColor)),
-          ],
-        ),
+        ],
       ),
     );
   }

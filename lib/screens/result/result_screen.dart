@@ -92,40 +92,16 @@ class ResultScreen extends StatelessWidget {
                 ? null
                 : _ResultActions(onSave: () => _save(context), onAssessAnother: () => _assessAnother(context)),
             body: ListView(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.md, AppSpacing.margin, AppSpacing.xl),
+              padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.xl),
               children: [
                 // 1. The verdict
-                _Verdict(assessment: assessment, saved: saved),
-                // 2. Risk-related alert, directly under the verdict
-                if (level == RiskLevel.high && s.highRiskAlerts) ...[
-                  const SizedBox(height: 12),
-                  const InfoNote(
-                    title: 'High-risk classification',
-                    text: 'Prompt review by the attending obstetric team is recommended.',
-                    icon: Icons.notification_important_outlined,
-                    background: AppColors.riskHighTint,
-                    iconColor: AppColors.riskHigh,
-                    borderColor: Color(0x33B42318),
-                  ),
-                ],
+                // 2. Includes the high-risk alert, at the point of decision
+                _Verdict(
+                    assessment: assessment,
+                    saved: saved,
+                    showHighRiskAlert: level == RiskLevel.high && s.highRiskAlerts),
                 const SizedBox(height: 12),
-                // 3. All three class probabilities
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Semantics(
-                        header: true,
-                        child: Text('Probability by risk level', style: AppTextStyles.labelLg),
-                      ),
-                      if (r.isDemo) ...[const SizedBox(height: 6), const _DemoTag()],
-                      const SizedBox(height: 14),
-                      ProbabilityBars(result: r),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // 4. Why: the main factors inline, the full chart one tap away
+                // 3. Why: the main factors inline, the full chart one tap away
                 AppCard(
                   padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 4),
                   child: Column(
@@ -158,7 +134,7 @@ class ResultScreen extends StatelessWidget {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: LinkButton(
-                          label: 'See all 6 indicators',
+                          label: 'Full explanation',
                           trailingIcon: Icons.arrow_forward,
                           onPressed: openExplanation,
                         ),
@@ -167,7 +143,7 @@ class ResultScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // 5. What was entered
+                // 4. What was entered
                 AppCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,11 +157,26 @@ class ResultScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                // 6. Single supporting notice
-                InfoNote(
-                  icon: Icons.verified_user_outlined,
-                  text: '${AppStrings.decisionNotice} Model: ${r.modelName}.',
+                const SizedBox(height: AppSpacing.md),
+                // 5. The decision-support notice, once, next to the save action
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(Icons.info_outline, size: 16, color: AppColors.outline),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Estimated by ${r.modelName}. ${AppStrings.decisionNotice}',
+                          style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -228,10 +219,14 @@ class _ResultActions extends StatelessWidget {
 /// The verdict: one large, risk-coloured label with the model's probability
 /// for it. Patient, time, assessor and save state sit above it.
 class _Verdict extends StatelessWidget {
-  const _Verdict({required this.assessment, required this.saved});
+  const _Verdict({required this.assessment, required this.saved, required this.showHighRiskAlert});
 
   final Assessment assessment;
   final bool saved;
+
+  /// The Settings "high-risk alerts" option, shown inside the verdict so the
+  /// classification and its caution are read together.
+  final bool showHighRiskAlert;
 
   @override
   Widget build(BuildContext context) {
@@ -274,47 +269,54 @@ class _Verdict extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 18),
+          Text('MODEL ESTIMATE', style: AppTextStyles.overline),
+          const SizedBox(height: 2),
           Semantics(
             header: true,
-            label: 'Risk classification: ${level.label}. Model probability ${Fmt.percent(p)}.',
+            label: 'Model estimate: ${level.label}, ${Fmt.percent(p)} probability.',
             excludeSemantics: true,
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                IconTile(
-                  icon: level.icon,
-                  size: 52,
-                  iconSize: 30,
-                  radius: 14,
-                  background: AppColors.surfaceLowest,
-                  foreground: level.color,
-                ),
-                const SizedBox(width: 14),
+                Icon(level.icon, size: 30, color: level.color),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(level.label, style: AppTextStyles.headlineLg.copyWith(color: level.textColor)),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(text: 'Model probability '),
-                            TextSpan(
-                              text: Fmt.percent(p),
-                              style: AppTextStyles.labelLg.tabular.copyWith(color: level.textColor),
-                            ),
-                          ],
-                        ),
-                        style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
+                  child: Text(level.label, style: AppTextStyles.headlineLg.copyWith(color: level.textColor)),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          Text(_summaryFor(level), style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurface)),
+          const SizedBox(height: 16),
+          ProbabilityBars(result: r, trackColor: AppColors.surfaceLowest),
+          if (r.isDemo) ...[const SizedBox(height: 12), const _DemoTag()],
+          if (showHighRiskAlert) ...[
+            Divider(height: 28, color: level.color.withAlpha(50)),
+            Semantics(
+              liveRegion: true,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 1),
+                    child: Icon(Icons.notification_important_outlined, size: 20, color: AppColors.riskHigh),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(text: 'High-risk classification. ', style: AppTextStyles.labelLg),
+                          const TextSpan(text: 'Prompt review by the attending obstetric team is recommended.'),
+                        ],
+                      ),
+                      style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurface),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (saved) ...[
             const SizedBox(height: 6),
             Text(
@@ -338,16 +340,9 @@ class _DemoTag extends StatelessWidget {
       child: Pill(
         text: AppStrings.demoOutputTag,
         icon: Icons.science_outlined,
-        background: AppColors.surfaceLow,
+        background: AppColors.surfaceLowest,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       ),
     );
   }
 }
-
-/// One plain-language line under the verdict.
-String _summaryFor(RiskLevel level) => switch (level) {
-      RiskLevel.low => 'The model associates these indicators with low maternal risk.',
-      RiskLevel.moderate => 'Some indicators are associated with elevated maternal risk.',
-      RiskLevel.high => 'Several indicators are associated with high maternal risk.',
-    };

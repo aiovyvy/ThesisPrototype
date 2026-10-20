@@ -46,13 +46,14 @@ Future<void> _render(
   String name,
   Widget screen, {
   Size size = const Size(360, 780),
+  double dpr = 2,
   PatientRepository? repository,
   RiskClassifier? classifier,
   AppSettings? settings,
   Future<void> Function()? interact,
   bool settle = true,
 }) async {
-  setScreen(tester, size);
+  setScreen(tester, size, dpr: dpr);
   AppNavigator.currentTab.value = ShellTab.home;
   // Unmount the previous app so its Navigator (and any pushed routes) go.
   await tester.pumpWidget(const SizedBox.shrink());
@@ -161,5 +162,25 @@ void main() {
     );
     await _render(tester, '16_settings', const SettingsScreen(), repository: repo, size: tall);
     await _render(tester, '17_home_small', const MainShell(), repository: repo, size: const Size(320, 640));
+
+    // Desktop browser width (Flutter web): content must not stretch.
+    const desktop = Size(1280, 900);
+    await _render(tester, '18_desktop_home', const MainShell(), repository: repo, size: desktop, dpr: 1);
+    await _render(tester, '19_desktop_assessment', const AssessmentInputScreen(),
+        repository: repo, size: desktop, dpr: 1);
+    await _render(tester, '20_desktop_result', ResultScreen(assessment: unsavedApi),
+        repository: repo, size: desktop, dpr: 1);
+    await _render(
+      tester,
+      '21_desktop_patients',
+      const MainShell(),
+      repository: repo,
+      size: desktop,
+      dpr: 1,
+      interact: () async {
+        await tester.tap(find.text('Patients').last);
+        await tester.pumpAndSettle();
+      },
+    );
   });
 }

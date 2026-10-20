@@ -116,3 +116,76 @@ They use the SDK's Roboto in place of Inter.
 3. **TalkBack:** confirm that the verdict, probability bars, contribution rows and form fields read sensibly.
 4. **Large text:** set system font size to the largest and skim the main screens.
 5. **Decide:** add `INTERNET` to the main manifest and/or bundle Inter fonts for release (section 5)?
+
+---
+
+# Refinement pass ("modern clinical warmth")
+
+A selective second pass on the same branch. Layouts, screen structure and both bug fixes (SHAP wording relative to
+the predicted level; API error state) are unchanged. Before/after screenshots were rendered at 360 dp and at
+1280 px (desktop web) with the opt-in harness.
+
+## What looked generic, and the change
+
+| Before | After |
+|---|---|
+| Saturated magenta primary (`#A32F5E`) | Muted rose `#A65B76` (white text 4.8:1); `#82445F` for rose text on tints (6.2:1) |
+| Cool off-white canvas, near-black text | Warm ivory `#FAF8F6`, warm charcoal `#302B30` (13.1:1) |
+| "Valid input" shown in the Low-risk green | Sage `#789486` marks completed fields, so input state never looks like a risk level |
+| Pink icon tiles on splash, settings, profile | Plain icons; tiles removed or neutral |
+| Gradient avatar with a green "On shift" dot (no shift tracking exists) | Plain initials |
+| Risk shown twice per row (tinted number tile + badge, or icon + badge) | Badge only; rows are shorter |
+| Content stretched edge to edge on desktop (1,250 px button) | 640 px content column for pages, headers and action bars; 520 px tab bar |
+
+All new colors were contrast-checked by script (WCAG 2.1); ratios are in `app_colors.dart`.
+
+## Clutter removed
+
+- **Assessment:** "Enter all six values" (the progress bar says it), the footer disclaimer (the notice appears at the
+  result, where the decision is made), the decorative patient icon, and **the range line under every field**. The
+  range is now the empty field's placeholder (e.g. "12–65"); the full range text appears only in errors and in the
+  screen-reader label.
+- **Result:** the boxed verdict icon, the generic sentence ("Several indicators are associated with…"), the separate
+  probability card (merged into the verdict), the separate high-risk alert box (now inside the verdict, same text),
+  and the tinted notice box (now a quiet caption naming the model).
+- **Explanation:** "Little effect on this result" is no longer repeated on every negligible row.
+- **Home:** the "Today" card became one line of counts under the date; the translucent circle on the main action is
+  gone; the "no high-risk patients" note is no longer green.
+- **Profile:** "Latest values" merged into the status card; history rows drop their icon column.
+
+## Usability
+
+- Wording now presents output as an estimate: "Model estimate" (result), "Latest model estimate" (profile, was
+  "Current status"), "Latest model estimate is High Risk" (Home), "Estimated by \<model>" beside Save.
+- With the keyboard open, the assessment bar keeps only **Assess risk**. Scaffold hides the keyboard inset from its
+  body, so the state is read above the Scaffold.
+- Shorter rows and merged cards reduce scrolling on Home, Result and Profile.
+- Vitals stay on one line ("HR 82", "BP 142/92", "5.6 mmol/L"); lines break only between values.
+
+## Screens changed
+
+Assessment, Processing (layout width only), Result, Explanation, Home, Patients, Patient profile, Clinician profile,
+Splash, and shared header, tab bar, rows and settings tiles. Login changed only through tokens.
+
+## Tests
+
+`flutter analyze`: no issues. `flutter test`: **50 passed**, 1 skipped (screenshot harness). Added tests:
+- estimate labelling;
+- the high-risk alert follows Settings;
+- range text appears only in errors;
+- the keyboard-open bar;
+- content ≤ 640 px at 1280 px width (assessment, result, patients).
+
+All earlier tests still pass, including the SHAP wording and API error tests and the 30 small-screen and large-text
+overflow checks.
+
+Found and fixed during the pass:
+- the new width helper initially used a plain `Center`, which made the sticky action bar fill the screen (caught by
+  the flow tests);
+- the first keyboard check read the inset below the Scaffold, where it is always zero (caught by the new test).
+
+## Limitations
+
+- Not done: a separate "review values" step (as in the reference mockup); it would add a tap to every assessment.
+- Rendered screenshots use Roboto in place of Inter.
+- The earlier items in §5 (release `INTERNET` permission, mock-scored demo cohort) still apply.

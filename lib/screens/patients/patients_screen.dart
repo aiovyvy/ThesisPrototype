@@ -60,7 +60,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.md, AppSpacing.margin, 0),
+              padding: AppLayout.page(context, top: AppSpacing.md, bottom: 0),
               sliver: SliverList.list(children: [
                 TextField(
                   controller: _search,
@@ -98,7 +98,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
                 height: 68,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.margin, vertical: 10),
+                  padding: EdgeInsets.symmetric(horizontal: AppLayout.sideMargin(context), vertical: 10),
                   children: [
                     _FilterChip(
                       label: 'All',
@@ -122,7 +122,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
               SliverFillRemaining(hasScrollBody: false, child: _EmptyState(onReset: _reset))
             else
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.margin),
+                padding: EdgeInsets.symmetric(horizontal: AppLayout.sideMargin(context)),
                 sliver: SliverToBoxAdapter(
                   child: GroupedList(
                     children: [

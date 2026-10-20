@@ -18,35 +18,6 @@ import 'risk_badge.dart';
 String keepTogether(String s) =>
     s.replaceAll(' ', String.fromCharCode(0xA0)).replaceAll('/', '/${String.fromCharCode(0x2060)}');
 
-/// Rounded-square number tile tinted by the patient's current risk.
-class PatientNumberTile extends StatelessWidget {
-  const PatientNumberTile({super.key, required this.patient, this.size = 44});
-
-  final Patient patient;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final risk = patient.currentRisk;
-    return ExcludeSemantics(
-      child: Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: risk?.tint ?? AppColors.surfaceLow,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: (risk?.color ?? AppColors.outline).withAlpha(45)),
-        ),
-        child: Text(
-          patient.shortNumber,
-          style: AppTextStyles.titleMd.tabular.copyWith(color: risk?.textColor ?? AppColors.onSurface),
-        ),
-      ),
-    );
-  }
-}
-
 /// A white group of rows separated by hairlines (lists on Home / Patients).
 class GroupedList extends StatelessWidget {
   const GroupedList({super.key, required this.children});
@@ -60,7 +31,7 @@ class GroupedList extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < children.length; i++) ...[
-            if (i > 0) const Divider(height: 1, indent: 72),
+            if (i > 0) const Divider(height: 1, indent: AppSpacing.md),
             children[i],
           ],
         ],
@@ -97,13 +68,11 @@ class PatientListRow extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 72),
+          constraints: const BoxConstraints(minHeight: 60),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.md, 12, 8, 12),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.md, 10, 8, 10),
             child: Row(
               children: [
-                PatientNumberTile(patient: patient),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,18 +136,11 @@ class AssessmentListRow extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 64),
+          constraints: const BoxConstraints(minHeight: 60),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(AppSpacing.md, 10, 8, 10),
             child: Row(
               children: [
-                SizedBox(
-                  width: 44,
-                  child: Center(
-                    child: Icon(level.icon, size: 22, color: level.color),
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +148,7 @@ class AssessmentListRow extends StatelessWidget {
                       Text('Patient ${a.patientId}', style: AppTextStyles.labelLg),
                       const SizedBox(height: 2),
                       Text(
-                        '${Fmt.relative(a.timestamp)} · BP ${m.systolic}/${m.diastolic}',
+                        [Fmt.relative(a.timestamp), 'BP ${m.systolic}/${m.diastolic}'].map(keepTogether).join(' · '),
                         style: AppTextStyles.bodySm.tabular.copyWith(color: AppColors.onSurfaceVariant),
                       ),
                     ],
@@ -218,21 +180,49 @@ class IndicatorGrid extends StatelessWidget {
     final m = indicators;
     return ResponsiveGrid(
       minItemWidth: 128,
+      spacing: 14,
       children: [
-        ValueTile(label: 'Blood pressure', value: '${m.systolic}/${m.diastolic}', unit: 'mmHg'),
-        ValueTile(label: 'Age', value: '${m.age}', unit: 'yrs'),
-        ValueTile(
-          label: 'Blood glucose',
-          value: Fmt.glucose(m.bloodGlucose, settings.glucoseUnit),
-          unit: settings.glucoseUnit.label,
-        ),
-        ValueTile(
-          label: 'Body temperature',
-          value: Fmt.temp(m.bodyTempF, settings.tempUnit),
-          unit: settings.tempUnit.label,
-        ),
-        ValueTile(label: 'Heart rate', value: '${m.heartRate}', unit: 'bpm'),
+        _Reading('Blood pressure', '${m.systolic}/${m.diastolic}', 'mmHg'),
+        _Reading('Age', '${m.age}', 'yrs'),
+        _Reading('Blood glucose', Fmt.glucose(m.bloodGlucose, settings.glucoseUnit), settings.glucoseUnit.label),
+        _Reading('Body temperature', Fmt.temp(m.bodyTempF, settings.tempUnit), settings.tempUnit.label),
+        _Reading('Heart rate', '${m.heartRate}', 'bpm'),
       ],
+    );
+  }
+}
+
+/// One measurement: small label over value + unit, without a box.
+class _Reading extends StatelessWidget {
+  const _Reading(this.label, this.value, this.unit);
+
+  final String label;
+  final String value;
+  final String unit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: '$label: $value $unit',
+      excludeSemantics: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.onSurfaceVariant)),
+          const SizedBox(height: 1),
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(text: value, style: AppTextStyles.titleMd.tabular),
+                TextSpan(
+                  text: ' $unit',
+                  style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

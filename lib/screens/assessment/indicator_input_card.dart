@@ -87,7 +87,6 @@ class IndicatorFieldRow extends StatelessWidget {
           const SizedBox(height: 1),
           Text(hint, style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
         ],
-        const SizedBox(height: 4),
         _Helper(data: data),
       ],
     );
@@ -129,8 +128,7 @@ class BloodPressureFields extends StatelessWidget {
           Text(fieldHint(d.indicator)!, style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
           const SizedBox(height: 8),
           _NumberInput(data: d),
-          const SizedBox(height: 6),
-          _Helper(data: d),
+          _Helper(data: d, top: 6),
         ],
       );
 
@@ -180,7 +178,7 @@ class _FieldLabel extends StatelessWidget {
             child: Icon(
               data.isValid ? Icons.check_circle : Icons.error,
               size: 16,
-              color: data.isValid ? AppColors.riskLow : AppColors.error,
+              color: data.isValid ? AppColors.sage : AppColors.error,
             ),
           ),
         ],
@@ -189,25 +187,24 @@ class _FieldLabel extends StatelessWidget {
   }
 }
 
-/// The expected range, replaced by the validation message when needed.
+/// The validation message, shown next to its input only when there is one.
+/// The expected range otherwise lives in the empty input's placeholder (and
+/// in the field's screen-reader label), so valid fields stay uncluttered.
 class _Helper extends StatelessWidget {
-  const _Helper({required this.data});
+  const _Helper({required this.data, this.top = 4});
 
   final IndicatorFieldData data;
+  final double top;
 
   @override
   Widget build(BuildContext context) {
     final err = data.errorText;
-    if (err != null) {
-      return Semantics(
+    if (err == null) return const SizedBox.shrink();
+    return Padding(
+      padding: EdgeInsets.only(top: top),
+      child: Semantics(
         liveRegion: true,
         child: Text(err, style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.error)),
-      );
-    }
-    return ExcludeSemantics(
-      child: Text(
-        data.spec.rangeText,
-        style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
       ),
     );
   }
@@ -217,6 +214,8 @@ class _NumberInput extends StatelessWidget {
   const _NumberInput({required this.data});
 
   final IndicatorFieldData data;
+
+  static String _compact(double v) => v == v.roundToDouble() ? '${v.round()}' : '$v';
 
   static OutlineInputBorder _border(Color c, double w) => OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -249,8 +248,10 @@ class _NumberInput extends StatelessWidget {
           style: AppTextStyles.metric,
           textAlignVertical: TextAlignVertical.center,
           decoration: InputDecoration(
-            hintText: '—',
-            hintStyle: AppTextStyles.metric.copyWith(color: AppColors.outlineVariant),
+            // Compact range ("2–25", not "2.0–25.0") so it fits beside the unit;
+            // the exact range is in the error text and the semantic label.
+            hintText: '${_compact(spec.min)}–${_compact(spec.max)}',
+            hintStyle: AppTextStyles.bodyMd.tabular.copyWith(color: AppColors.outline),
             // suffixText only appears once the field is focused or filled; the
             // unit should always be visible, so it is drawn as an icon slot.
             suffixIcon: Padding(

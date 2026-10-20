@@ -51,46 +51,23 @@ class DoctorProfileScreen extends StatelessWidget {
         final completePct = patients.isEmpty ? 0 : (complete / patients.length * 100).round();
 
         return ListView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.md, AppSpacing.margin, AppSpacing.xl),
+          padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.xl),
           children: [
             // Identity card
             AppCard(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Row(
                 children: [
-                  Stack(
-                    children: [
-                      Container(
-                        width: 76,
-                        height: 76,
-                        alignment: Alignment.center,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [AppColors.primaryFixedDim, AppColors.primary],
-                          ),
-                        ),
-                        child: Text(c.initials, style: AppTextStyles.headlineMd.copyWith(color: Colors.white)),
-                      ),
-                      Positioned(
-                        right: 2,
-                        bottom: 2,
-                        child: Semantics(
-                          label: 'On shift',
-                          child: Container(
-                            width: 16,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              color: AppColors.riskLow,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2.5),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  // Plain initials. (The former "On shift" dot implied shift
+                  // tracking the prototype does not have.)
+                  ExcludeSemantics(
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      alignment: Alignment.center,
+                      decoration: const BoxDecoration(color: AppColors.primarySoft, shape: BoxShape.circle),
+                      child: Text(c.initials, style: AppTextStyles.headlineSm.copyWith(color: AppColors.primaryDark)),
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
@@ -99,13 +76,10 @@ class DoctorProfileScreen extends StatelessWidget {
                       children: [
                         Semantics(header: true, child: Text(c.displayName, style: AppTextStyles.headlineMd)),
                         const SizedBox(height: 4),
-                        Pill(
-                          text: c.role,
-                          background: AppColors.primaryFixed,
-                          foreground: AppColors.onPrimaryFixedVariant,
+                        Text(
+                          '${c.role} · ${c.affiliation}',
+                          style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
                         ),
-                        const SizedBox(height: 4),
-                        Text(c.affiliation, style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
                       ],
                     ),
                   ),
@@ -180,8 +154,7 @@ class _StatCard extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             Text(label,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
+                textAlign: TextAlign.center, style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
           ],
         ),
       ),

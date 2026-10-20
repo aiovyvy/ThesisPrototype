@@ -4,6 +4,7 @@ import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
 import '../navigation/app_navigator.dart';
 import 'aiovy_logo.dart';
+import 'common.dart';
 
 enum HeaderStyle {
   /// Logo · "AIOVY | Home" · avatar (Home tab)
@@ -58,7 +59,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         height: 64,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: _content(context),
+          child: ContentWidth(maxWidth: AppLayout.maxContentWidth + 24, child: _content(context)),
         ),
       ),
     );

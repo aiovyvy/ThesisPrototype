@@ -73,7 +73,7 @@ class SettingsScreen extends StatelessWidget {
       body: AppStateBuilder(builder: (context, scope) {
         final s = scope.settings;
         return ListView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.md, AppSpacing.margin, AppSpacing.xl),
+          padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.xl),
           children: [
             const SectionLabel('Units'),
             SettingsGroup(children: [

@@ -92,26 +92,19 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           return const Center(child: Text('Patient not found'));
         }
         final s = scope.settings;
-        final latest = p.latest;
         final history =
             p.assessments.where((a) => _historyFilter == null || a.result.riskLevel == _historyFilter).toList();
 
         return ListView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.margin, AppSpacing.md, AppSpacing.margin, AppSpacing.xl),
+          padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.xl),
           children: [
-            _StatusCard(patient: p),
+            _StatusCard(patient: p, settings: s),
             const SizedBox(height: AppSpacing.md),
             PrimaryButton(
               label: 'New assessment',
-              leadingIcon: Icons.add_circle_outline,
+              leadingIcon: Icons.add,
               onPressed: () => AppNavigator.push(context, AssessmentInputScreen(patientId: p.id)),
             ),
-            if (latest != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              SectionTitle('Latest values', caption: Fmt.relative(latest.timestamp)),
-              const SizedBox(height: AppSpacing.sm),
-              IndicatorGrid(indicators: latest.indicators, settings: s),
-            ],
             const SizedBox(height: AppSpacing.lg),
             SectionTitle(
               'Assessment history (${p.assessments.length})',
@@ -144,62 +137,45 @@ class _FilterChoice {
   final RiskLevel? level;
 }
 
-/// Current risk status first, then who the patient is.
+/// The latest model estimate (not a clinical status), who the patient is,
+/// and the measurements that estimate was based on.
 class _StatusCard extends StatelessWidget {
-  const _StatusCard({required this.patient});
+  const _StatusCard({required this.patient, required this.settings});
 
   final Patient patient;
+  final AppSettings settings;
 
   @override
   Widget build(BuildContext context) {
     final latest = patient.latest;
     final level = latest?.result.riskLevel;
     final hasContext = patient.gestationalAge != null || patient.clinicalNote != null;
-    return Container(
-      decoration: BoxDecoration(
-        color: level?.tint ?? AppColors.surfaceLowest,
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: level == null ? AppColors.border : level.color.withAlpha(70)),
-      ),
-      padding: const EdgeInsets.all(AppSpacing.md),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              IconTile(
-                icon: level?.icon ?? Icons.person_outline,
-                size: 52,
-                iconSize: 28,
-                radius: 14,
-                background: AppColors.surfaceLowest,
-                foreground: level?.color ?? AppColors.onSurfaceVariant,
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('CURRENT STATUS', style: AppTextStyles.overline),
-                    const SizedBox(height: 2),
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        level?.label ?? 'Not yet assessed',
-                        style: AppTextStyles.headlineMd.copyWith(color: level?.textColor ?? AppColors.onSurface),
-                      ),
-                    ),
-                    if (latest != null)
-                      Text(
-                        'Latest assessment · ${Fmt.relative(latest.timestamp)}',
-                        style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant),
-                      ),
-                  ],
-                ),
-              ),
-            ],
+          Text(
+            latest == null ? 'LATEST MODEL ESTIMATE' : 'LATEST MODEL ESTIMATE · ${Fmt.relative(latest.timestamp)}',
+            style: AppTextStyles.overline,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 4),
+          Semantics(
+            header: true,
+            label: level == null ? 'Not yet assessed' : 'Latest model estimate: ${level.label}',
+            excludeSemantics: true,
+            child: Row(
+              children: [
+                if (level != null) ...[Icon(level.icon, size: 26, color: level.color), const SizedBox(width: 8)],
+                Expanded(
+                  child: Text(
+                    level?.label ?? 'Not yet assessed',
+                    style: AppTextStyles.headlineMd.copyWith(color: level?.textColor ?? AppColors.onSurface),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
           Text(
             [
               '${patient.age} years',
@@ -218,6 +194,10 @@ class _StatusCard extends StatelessWidget {
               'Pregnancy context · not a model input',
               style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.onSurfaceVariant),
             ),
+          ],
+          if (latest != null) ...[
+            const Divider(height: 28),
+            IndicatorGrid(indicators: latest.indicators, settings: settings),
           ],
         ],
       ),
@@ -286,14 +266,6 @@ class _HistoryRow extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                width: 44,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Icon(level.icon, size: 22, color: level.color),
-                ),
-              ),
-              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -303,7 +275,14 @@ class _HistoryRow extends StatelessWidget {
                       runSpacing: 2,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Text(level.label, style: AppTextStyles.labelLg.copyWith(color: level.textColor)),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(level.icon, size: 18, color: level.color),
+                            const SizedBox(width: 6),
+                            Text(level.label, style: AppTextStyles.labelLg.copyWith(color: level.textColor)),
+                          ],
+                        ),
                         if (prev != null) RiskChangeMarker(current: level, previous: prev),
                       ],
                     ),

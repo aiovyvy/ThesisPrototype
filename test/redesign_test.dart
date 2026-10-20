@@ -1,3 +1,4 @@
+import 'package:aiovy/data/repositories/app_settings.dart';
 import 'package:aiovy/data/repositories/patient_repository.dart';
 import 'package:aiovy/models/assessment.dart';
 import 'package:aiovy/models/maternal_indicators.dart';
@@ -14,6 +15,7 @@ import 'package:aiovy/screens/settings/settings_screen.dart';
 import 'package:aiovy/screens/shap/shap_screen.dart';
 import 'package:aiovy/screens/splash/splash_screen.dart';
 import 'package:aiovy/services/risk_classifier.dart';
+import 'package:aiovy/widgets/common.dart';
 import 'package:aiovy/widgets/explanation_widgets.dart';
 import 'package:aiovy/widgets/patient_widgets.dart';
 import 'package:flutter/material.dart';
@@ -164,6 +166,81 @@ void main() {
     expect(find.text('Model: Random Forest (UCI)'), findsOneWidget);
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
+  });
+
+  group('Refinement', () {
+    final unsaved = Assessment(
+      id: 'A-refine',
+      patientId: 'P-0099',
+      timestamp: DateTime(2026, 10, 2, 10, 48),
+      indicators: apiExampleIndicators,
+      result: apiExampleResult,
+      assessedBy: 'Demo Clinician',
+    );
+
+    testWidgets('results are labelled as model estimates, not clinical status', (tester) async {
+      setScreen(tester, const Size(360, 780));
+      await tester.pumpWidget(testApp(ResultScreen(assessment: unsaved)));
+      await tester.pumpAndSettle();
+      expect(find.text('MODEL ESTIMATE'), findsOneWidget);
+      // The notice sits at the end of the (lazily built) list, by the save action.
+      final notice = find.textContaining('Estimated by Random Forest (UCI).');
+      await tester.scrollUntilVisible(notice, 300, scrollable: find.byType(Scrollable).first);
+      expect(notice, findsOneWidget);
+
+      await tester.pumpWidget(testApp(const PatientProfileScreen(patientId: 'P-0014')));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('LATEST MODEL ESTIMATE'), findsOneWidget);
+      expect(find.textContaining('CURRENT STATUS'), findsNothing);
+    });
+
+    testWidgets('the high-risk alert stays with the verdict and follows Settings', (tester) async {
+      setScreen(tester, const Size(360, 780));
+      final settings = AppSettings();
+      await tester.pumpWidget(testApp(ResultScreen(assessment: unsaved), settings: settings));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Prompt review by the attending obstetric team'), findsOneWidget);
+
+      settings.highRiskAlerts = false;
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Prompt review by the attending obstetric team'), findsNothing);
+    });
+
+    testWidgets('valid fields show no range line; errors appear beside their input', (tester) async {
+      setScreen(tester, const Size(360, 780));
+      await tester.pumpWidget(testApp(const AssessmentInputScreen()));
+      expect(find.text('12–65 years'), findsNothing); // range is the placeholder instead
+      expect(find.text('12–65'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, '99');
+      await tester.pump();
+      expect(find.text('Check value · expected 12–65 years'), findsOneWidget);
+    });
+
+    testWidgets('with the keyboard open, the bar keeps only the button', (tester) async {
+      setScreen(tester, const Size(360, 780));
+      tester.view.viewInsets = const FakeViewPadding(bottom: 600); // physical px = 300 dp
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pumpWidget(testApp(const AssessmentInputScreen()));
+      await tester.pump();
+      expect(find.text('Assess risk'), findsOneWidget);
+      expect(find.textContaining('values entered'), findsNothing);
+    });
+
+    for (final (name, screen) in [
+      ('assessment', () => const AssessmentInputScreen()),
+      ('result', () => ResultScreen(assessment: unsaved)),
+      ('patients', () => const MainShell()),
+    ]) {
+      testWidgets('$name content stays in a readable column on desktop', (tester) async {
+        setScreen(tester, const Size(1280, 900), dpr: 1);
+        await tester.pumpWidget(testApp(screen()));
+        await tester.pumpAndSettle();
+        for (final card in find.byType(AppCard).evaluate()) {
+          expect(tester.getSize(find.byWidget(card.widget)).width, lessThanOrEqualTo(640));
+        }
+        expect(tester.takeException(), isNull);
+      });
+    }
   });
 
   testWidgets('history shows the glucose unit intact', (tester) async {

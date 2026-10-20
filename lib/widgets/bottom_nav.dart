@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_text_styles.dart';
 import '../navigation/app_navigator.dart';
+import 'common.dart';
 
 /// Home / Patients / Profile bar from the Stitch design: icon over label,
 /// active tab in plum with a soft pink pill.
@@ -30,21 +31,25 @@ class AiovyBottomNav extends StatelessWidget {
       ),
       child: SizedBox(
         height: 68,
-        child: Row(
-          children: [
-            for (final (tab, icon, activeIcon, label) in _items)
-              Expanded(
-                child: _NavItem(
-                  icon: tab == current ? activeIcon : icon,
-                  label: label,
-                  selected: tab == current,
-                  onTap: () {
-                    if (tab != current) HapticFeedback.selectionClick();
-                    onSelect(tab);
-                  },
+        // Tabs stay together on wide screens instead of spreading edge to edge.
+        child: ContentWidth(
+          maxWidth: 520,
+          child: Row(
+            children: [
+              for (final (tab, icon, activeIcon, label) in _items)
+                Expanded(
+                  child: _NavItem(
+                    icon: tab == current ? activeIcon : icon,
+                    label: label,
+                    selected: tab == current,
+                    onTap: () {
+                      if (tab != current) HapticFeedback.selectionClick();
+                      onSelect(tab);
+                    },
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -61,7 +66,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : AppColors.onSurfaceVariant;
+    final color = selected ? AppColors.primaryDark : AppColors.onSurfaceVariant;
     return Semantics(
       button: true,
       selected: selected,

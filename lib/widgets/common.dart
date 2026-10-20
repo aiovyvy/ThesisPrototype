@@ -416,6 +416,50 @@ class ResponsiveGrid extends StatelessWidget {
   }
 }
 
+/// Width rules shared by every screen. On phones the page has a 16 px
+/// margin; on tablets and the web, content sits in a centred column so
+/// inputs, cards and rows never stretch across a desktop browser.
+class AppLayout {
+  AppLayout._();
+
+  static const double maxContentWidth = 640;
+
+  /// Page padding for a scroll view: the usual margin, widened on large
+  /// screens so the content column is at most [maxContentWidth]. Keeps the
+  /// whole width scrollable (unlike wrapping the list in a Center).
+  static EdgeInsets page(BuildContext context, {double top = AppSpacing.md, double bottom = AppSpacing.xl}) {
+    final side = sideMargin(context);
+    return EdgeInsets.fromLTRB(side, top, side, bottom);
+  }
+
+  static double sideMargin(BuildContext context) {
+    final w = MediaQuery.sizeOf(context).width;
+    return w - 2 * AppSpacing.margin > maxContentWidth ? (w - maxContentWidth) / 2 : AppSpacing.margin;
+  }
+}
+
+/// Centres [child] in the content column (for headers and bottom bars).
+class ContentWidth extends StatelessWidget {
+  const ContentWidth({super.key, required this.child, this.maxWidth = AppLayout.maxContentWidth});
+
+  final Widget child;
+  final double maxWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    // heightFactor: 1 – centre horizontally only. A plain Center expands to
+    // the full available height, which in a Scaffold's bottomNavigationBar
+    // slot would push the page body off screen.
+    return Center(
+      heightFactor: 1,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: child,
+      ),
+    );
+  }
+}
+
 /// Bottom bar that holds a screen's primary action, above the system inset.
 /// Used by the assessment form, the result and the processing error state so
 /// the main action is always in the same place.
@@ -434,7 +478,10 @@ class StickyActionBar extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Padding(padding: const EdgeInsets.fromLTRB(AppSpacing.margin, 12, AppSpacing.margin, 12), child: child),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.margin, 12, AppSpacing.margin, 12),
+          child: ContentWidth(child: child),
+        ),
       ),
     );
   }
