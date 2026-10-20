@@ -9,7 +9,7 @@ enum ShellTab { home, patients, profile }
 /// * [slide] – hierarchical push (list → detail, result → explanation):
 ///   the new page slides in from the right, the previous one shifts left
 ///   slightly; back reverses it and supports the edge swipe-back gesture.
-/// * [fade] – a context change rather than a drill-down (splash → sign-in,
+/// * [fade] – a context change rather than a drill-down (welcome → sign-in,
 ///   sign-in → app, assessment → processing). Optional small upward [rise]
 ///   for "revealing" a result.
 class AppMotion {
@@ -70,8 +70,7 @@ class AppNavigator {
 
   static Future<T?> push<T>(BuildContext context, Widget page) => Navigator.of(context).push<T>(route<T>(page));
 
-  static Future<T?> pushFade<T>(BuildContext context, Widget page) =>
-      Navigator.of(context).push<T>(fadeRoute<T>(page));
+  static Future<T?> pushFade<T>(BuildContext context, Widget page) => Navigator.of(context).push<T>(fadeRoute<T>(page));
 
   /// Replaces the current screen with a fade (non-hierarchical change).
   static Future<T?> replace<T>(BuildContext context, Widget page, {bool rise = false}) =>

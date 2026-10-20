@@ -1,18 +1,43 @@
 import 'package:flutter/material.dart';
 
+import '../core/brand/brand_mark.dart';
 import '../core/constants/app_strings.dart';
 import '../core/theme/app_colors.dart';
+import '../core/theme/app_text_styles.dart';
 
-/// The AIOVY brand mark, drawn from the Stitch SVG
-/// (`aiovy_abstract_maternal_health_brand_mark`, 160×160 viewBox) so it stays
-/// crisp at any size without an SVG package.
+/// Logo variants (all drawn from [BrandMark], so they always match):
+///
+/// * [AiovyLogoMark] – symbol only: compact headers, launcher icon.
+/// * [AiovyWordmark] – horizontal: symbol beside "AIOVY" (+ tagline).
+/// * [AiovyLogoStacked] – primary: symbol above "AIOVY" and the tagline.
+///
+/// Pass `monochrome` (any variant) for a single-colour version on simple or
+/// low-colour backgrounds.
+
+/// Brand colour for each tone of the mark.
+Color markToneColor(MarkTone tone) => switch (tone) {
+      MarkTone.rose => AppColors.primary,
+      MarkTone.mauve => AppColors.primaryDark,
+      MarkTone.soft => AppColors.brandSoft,
+    };
+
+/// The AIOVY symbol.
 class AiovyLogoMark extends StatelessWidget {
-  const AiovyLogoMark({super.key, this.size = 32, this.showTile = true, this.semanticLabel = 'AIOVY logo'});
+  const AiovyLogoMark({
+    super.key,
+    this.size = 32,
+    this.showTile = false,
+    this.monochrome,
+    this.semanticLabel = 'AIOVY logo',
+  });
 
   final double size;
 
-  /// Draws the soft pink rounded tile behind the mark.
+  /// Draws a blush rounded square behind the symbol (app-icon style).
   final bool showTile;
+
+  /// Paints every shape in this one colour.
+  final Color? monochrome;
   final String semanticLabel;
 
   @override
@@ -22,135 +47,152 @@ class AiovyLogoMark extends StatelessWidget {
       image: true,
       child: SizedBox.square(
         dimension: size,
-        child: CustomPaint(painter: _BrandMarkPainter(showTile: showTile)),
+        child: CustomPaint(painter: BrandMarkPainter(showTile: showTile, monochrome: monochrome)),
       ),
     );
   }
 }
 
-class _BrandMarkPainter extends CustomPainter {
-  _BrandMarkPainter({required this.showTile});
+/// Paints [BrandMark.shapes] scaled to the canvas. Public so tooling can
+/// render launcher icons from exactly the same drawing.
+class BrandMarkPainter extends CustomPainter {
+  BrandMarkPainter({this.showTile = false, this.monochrome, this.tileColor = AppColors.blush, this.inset = 0});
 
   final bool showTile;
+  final Color? monochrome;
+  final Color tileColor;
+
+  /// Fraction of the canvas left empty around the symbol (icon safe zones).
+  final double inset;
+
+  static Path pathFor(MarkShape s) {
+    if (s.isCircle) return Path()..addOval(Rect.fromCircle(center: Offset(s.cx, s.cy), radius: s.r));
+    final p = Path();
+    parseMarkPath(
+      s.d!,
+      moveTo: p.moveTo,
+      lineTo: p.lineTo,
+      cubicTo: p.cubicTo,
+      quadTo: p.quadraticBezierTo,
+      close: p.close,
+    );
+    return p;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    final s = size.width / 160.0;
-    canvas.save();
-    canvas.scale(s, s);
-
     if (showTile) {
       canvas.drawRRect(
-        RRect.fromRectAndRadius(const Rect.fromLTWH(0, 0, 160, 160), const Radius.circular(36)),
-        Paint()..color = AppColors.brandTint,
+        RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(size.width * 0.225)),
+        Paint()..color = tileColor,
       );
     }
-
-    Paint stroke(Color c, double w) => Paint()
-      ..color = c
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    // Outer protective shield (15 % ink)
-    final shield = Path()
-      ..moveTo(80, 34)
-      ..cubicTo(60, 34, 44, 50, 44, 72)
-      ..cubicTo(44, 94, 62, 116, 80, 126)
-      ..cubicTo(98, 116, 116, 94, 116, 72)
-      ..cubicTo(116, 50, 100, 34, 80, 34)
-      ..close();
-    canvas.drawPath(shield, stroke(AppColors.brandInk.withAlpha(38), 4.5));
-
-    // Soft bloom fill
-    final bloom = Path()
-      ..moveTo(56, 86)
-      ..cubicTo(56, 64, 68, 46, 80, 46)
-      ..cubicTo(92, 46, 104, 64, 104, 86)
-      ..cubicTo(104, 102, 92, 115, 80, 122)
-      ..cubicTo(68, 115, 56, 102, 56, 86)
-      ..close();
-    canvas.drawPath(bloom, Paint()..color = AppColors.brandPink.withAlpha(31));
-
-    // Primary maternal arc
-    final arc = Path()
-      ..moveTo(80, 46)
-      ..cubicTo(67, 46, 54, 62, 54, 84)
-      ..cubicTo(54, 104, 70, 118, 80, 124)
-      ..cubicTo(90, 118, 106, 104, 106, 84)
-      ..cubicTo(106, 62, 93, 46, 80, 46)
-      ..close();
-    canvas.drawPath(arc, stroke(AppColors.brandPink, 5));
-
-    // Inner beacon
-    final beacon = Path()
-      ..moveTo(72, 78)
-      ..cubicTo(72, 70, 75.5, 64, 80, 64)
-      ..cubicTo(84.5, 64, 88, 70, 88, 78)
-      ..cubicTo(88, 88, 80, 96, 80, 96)
-      ..cubicTo(80, 96, 72, 88, 72, 78)
-      ..close();
-    canvas.drawPath(beacon, Paint()..color = AppColors.brandPink);
-
-    // Crossbar
-    final bar = Path()
-      ..moveTo(64, 90)
-      ..cubicTo(72, 88, 88, 88, 96, 90);
-    canvas.drawPath(bar, stroke(AppColors.brandInk, 4.5));
-
+    final pad = size.width * inset;
+    final s = (size.width - 2 * pad) / BrandMark.canvas;
+    canvas
+      ..save()
+      ..translate(pad, pad)
+      ..scale(s, s);
+    for (final shape in BrandMark.shapes) {
+      canvas.drawPath(
+        pathFor(shape),
+        Paint()
+          ..isAntiAlias = true
+          ..color = monochrome ?? markToneColor(shape.tone),
+      );
+    }
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant _BrandMarkPainter oldDelegate) => oldDelegate.showTile != showTile;
+  bool shouldRepaint(covariant BrandMarkPainter old) =>
+      old.showTile != showTile || old.monochrome != monochrome || old.tileColor != tileColor || old.inset != inset;
 }
 
-/// Horizontal wordmark: mark + "AIOVY" + "MATERNAL CARE INTELLIGENCE".
+TextStyle _wordStyle(double fontSize, Color color) => AppTextStyles.titleMd.weight(FontWeight.w500).copyWith(
+      fontSize: fontSize,
+      height: 1,
+      letterSpacing: fontSize * 0.2,
+      color: color,
+    );
+
+TextStyle _taglineStyle(double fontSize, Color color) => AppTextStyles.labelSm.weight(FontWeight.w600).copyWith(
+      fontSize: fontSize,
+      height: 1.2,
+      letterSpacing: fontSize * 0.22,
+      color: color,
+    );
+
+/// Horizontal logo: symbol beside "AIOVY", with the tagline beneath the
+/// name when [showSubLabel] is true. [height] is the symbol's size.
 class AiovyWordmark extends StatelessWidget {
-  const AiovyWordmark({super.key, this.height = 32, this.showSubLabel = true});
+  const AiovyWordmark({super.key, this.height = 32, this.showSubLabel = true, this.monochrome});
 
   final double height;
   final bool showSubLabel;
+  final Color? monochrome;
 
   @override
   Widget build(BuildContext context) {
+    final color = monochrome ?? AppColors.primaryDark;
     final scale = height / 32;
+    // The tagline is decorative here; never let text scaling blow up a header.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.2,
+      child: Semantics(
+        label: 'AIOVY, Maternal Care Intelligence',
+        excludeSemantics: true,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AiovyLogoMark(size: height, monochrome: monochrome),
+            SizedBox(width: 8 * scale),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppStrings.appName, style: _wordStyle(17 * scale, color)),
+                if (showSubLabel) ...[
+                  SizedBox(height: 3 * scale),
+                  Text(AppStrings.wordmarkSub, style: _taglineStyle(6 * scale, color)),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Primary logo: the symbol centred above "AIOVY" and the tagline.
+class AiovyLogoStacked extends StatelessWidget {
+  const AiovyLogoStacked({super.key, this.symbolSize = 112, this.monochrome});
+
+  final double symbolSize;
+  final Color? monochrome;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = monochrome ?? AppColors.primaryDark;
+    final scale = symbolSize / 112;
     return Semantics(
       label: 'AIOVY, Maternal Care Intelligence',
+      header: true,
       excludeSemantics: true,
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AiovyLogoMark(size: height),
-          SizedBox(width: 8 * scale),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppStrings.appName,
-                style: TextStyle(
-                  fontSize: 17 * scale,
-                  height: 1.05,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.0,
-                  color: AppColors.brandInk,
-                ),
-              ),
-              if (showSubLabel)
-                Text(
-                  AppStrings.wordmarkSub,
-                  style: TextStyle(
-                    fontSize: 6.5 * scale,
-                    height: 1.3,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.9,
-                    color: const Color(0xFF6B5660),
-                  ),
-                ),
-            ],
+          AiovyLogoMark(size: symbolSize, monochrome: monochrome),
+          SizedBox(height: 18 * scale),
+          // Extra right padding balances the trailing letter-spacing so the
+          // word looks centred.
+          Padding(
+            padding: EdgeInsets.only(left: 34 * scale * 0.2),
+            child: Text(AppStrings.appName, style: _wordStyle(34 * scale, color)),
           ),
+          SizedBox(height: 10 * scale),
+          Text(AppStrings.wordmarkSub, style: _taglineStyle(10 * scale, color), textAlign: TextAlign.center),
         ],
       ),
     );

@@ -71,38 +71,50 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Align(alignment: Alignment.centerLeft, child: AiovyWordmark(height: 36)),
+                  Row(
+                    children: [
+                      // Back to Welcome when opened from there; after sign-out
+                      // there is nothing to go back to.
+                      if (Navigator.of(context).canPop()) ...[
+                        IconButton(
+                          tooltip: 'Back',
+                          icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
+                          onPressed: () => Navigator.of(context).maybePop(),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
+                      const AiovyWordmark(height: 36),
+                    ],
+                  ),
                   const SizedBox(height: AppSpacing.xl),
                   Semantics(
                     header: true,
-                    child: Text('Sign in', style: AppTextStyles.displayLg),
+                    child: Text('Welcome back', style: AppTextStyles.displayLg),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    'Maternal risk assessment for barangay midwives and obstetric teams.',
-                    style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
-                  ),
+                  Text('Sign in to continue.', style: AppTextStyles.bodyLg.copyWith(color: AppColors.onSurfaceVariant)),
                   const SizedBox(height: AppSpacing.lg),
                   _card(settings),
                   const SizedBox(height: AppSpacing.md),
-                  const InfoNote(
-                    icon: Icons.science_outlined,
-                    title: 'Thesis prototype',
-                    text: 'Any non-empty email and password signs in. Use demo records only, '
-                        'never real patient information.',
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Center(
-                    child: LinkButton(
-                      label: 'Need help signing in?',
-                      leadingIcon: Icons.help_outline,
-                      color: AppColors.onSurfaceVariant,
-                      onPressed: () => _showInfo(
-                        'Access help',
-                        'This is a thesis prototype. Any non-empty email or clinical ID and password will sign you in.',
+                  // Honest about what this sign-in is: no real authentication.
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(top: 1),
+                        child: Icon(Icons.science_outlined, size: 18, color: AppColors.onSurfaceVariant),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Prototype sign-in: any non-empty email and password works. '
+                          'Use demo records only, never real patient information.',
+                          style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: AppSpacing.lg),
                   Text(
                     AppStrings.versionShort,
                     textAlign: TextAlign.center,
@@ -132,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 6),
                 AppTextField(
                   controller: _email,
-                  hint: 'e.g. dr.santos@hospital.org',
+                  hint: 'name@hospital.org',
                   icon: Icons.badge_outlined,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
@@ -153,16 +165,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 AppTextField(
                   controller: _password,
-                  hint: 'Enter clinical password',
+                  hint: 'Password',
                   icon: Icons.lock_outline,
                   obscureText: _obscure,
                   textInputAction: TextInputAction.done,
                   autofillHints: const [AutofillHints.password],
                   onSubmitted: (_) => _signIn(),
                   validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
-                  suffix: LinkButton(
-                    label: _obscure ? 'Show' : 'Hide',
-                    style: AppTextStyles.labelSm,
+                  suffix: IconButton(
+                    tooltip: _obscure ? 'Show password' : 'Hide password',
+                    icon: Icon(
+                      _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      color: AppColors.onSurfaceVariant,
+                    ),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
                 ),
@@ -177,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Text('Remember this workstation', style: AppTextStyles.labelLg),
                             const SizedBox(height: 2),
                             Text(
-                              'Prototype setting · not stored on the device',
+                              'Not stored in this prototype',
                               style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant),
                             ),
                           ],

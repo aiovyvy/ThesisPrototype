@@ -13,7 +13,7 @@ import 'package:aiovy/screens/processing/processing_screen.dart';
 import 'package:aiovy/screens/result/result_screen.dart';
 import 'package:aiovy/screens/settings/settings_screen.dart';
 import 'package:aiovy/screens/shap/shap_screen.dart';
-import 'package:aiovy/screens/splash/splash_screen.dart';
+import 'package:aiovy/screens/welcome/welcome_screen.dart';
 import 'package:aiovy/services/risk_classifier.dart';
 import 'package:aiovy/widgets/common.dart';
 import 'package:aiovy/widgets/explanation_widgets.dart';
@@ -266,7 +266,7 @@ void main() {
       assessedBy: 'Demo Clinician',
     );
     final screens = <String, Widget Function()>{
-      'splash': () => const SplashScreen(),
+      'welcome': () => const WelcomeScreen(),
       'login': () => const LoginScreen(),
       'home': () => const MainShell(),
       'assessment': () => const AssessmentInputScreen(),

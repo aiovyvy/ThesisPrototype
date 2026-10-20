@@ -5,7 +5,7 @@ import 'data/repositories/app_settings.dart';
 import 'data/repositories/patient_repository.dart';
 import 'models/clinician.dart';
 import 'navigation/app_navigator.dart';
-import 'screens/splash/splash_screen.dart';
+import 'screens/welcome/welcome_screen.dart';
 import 'services/risk_classifier.dart';
 import 'state/app_scope.dart';
 
@@ -35,7 +35,7 @@ class AiovyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),
         scaffoldMessengerKey: AppNavigator.messengerKey,
-        home: const SplashScreen(),
+        home: const WelcomeScreen(),
       ),
     );
   }

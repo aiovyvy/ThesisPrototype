@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300.0 64.0" width="300.0" height="64.0" role="img">
+  <title>AIOVY, Maternal Care Intelligence</title>
+  <!-- Generated from lib/core/brand/brand_mark.dart by test/brand_assets_test.dart. Do not edit. -->
+  <g transform="translate(0.0 0.0) scale(0.4)">
+    <path d="M 86 25 C 90 30 91 36 90 44 C 92 48 94 52 93 55 C 90.5 56.5 88 56.5 86 56.5 C 87 59 85 61.5 83 63 C 82 66 80 67.5 77 67.5 C 73 68 69 67.5 66 67 C 58 76 56 86 58 96 C 62 114 78 126 100 128 C 112 129 126 128 136 124 C 128 138 112 146 94 146 C 64 146 40 128 34 104 C 28 80 34 50 48 32 C 58 18 74 14 86 25 Z" fill="#A65B76"/>
+    <circle cx="90.0" cy="82.0" r="13.0" fill="#82445F"/>
+    <path d="M 82 99 C 92 99 104 96 112 92 C 116 100 110 112 96 118 C 84 122 72 118 70 112 C 72 106 76 101 82 99 Z" fill="#D29AAE"/>
+    <path d="M 128 108 C 126 90 134 76 150 66 C 154 88 146 102 128 108 Z" fill="#D29AAE"/>
+  </g>
+  <text x="76.0" y="32.0" font-family="Inter, Arial, sans-serif" font-size="34.0" font-weight="500" letter-spacing="6.8" text-anchor="start" fill="#82445F">AIOVY</text>
+  <text x="77.0" y="52.0" font-family="Inter, Arial, sans-serif" font-size="9.6" font-weight="600" letter-spacing="2.1" text-anchor="start" fill="#82445F">MATERNAL CARE INTELLIGENCE</text>
+</svg>

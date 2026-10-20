@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AIOVY brand colours (see lib/core/theme/app_colors.dart). -->
+    <color name="aiovy_ivory">#FAF8F6</color>
+    <color name="ic_launcher_background">#F8DDE3</color>
+</resources>

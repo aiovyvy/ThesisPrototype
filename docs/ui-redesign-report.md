@@ -189,3 +189,66 @@ Found and fixed during the pass:
 - Not done: a separate "review values" step (as in the reference mockup); it would add a tap to every assessment.
 - Rendered screenshots use Roboto in place of Inter.
 - The earlier items in §5 (release `INTERNET` permission, mock-scored demo cohort) still apply.
+
+---
+
+# Brand identity and intro experience
+
+## Logo
+
+An original vector symbol based on the concept sheet: a mother in profile looking down at the baby she holds, her
+hair flowing into the cradling arm, with a single leaf. It is drawn from four flat shapes with no gradients, stays
+recognisable at 16 px, and its shapes never touch, so the single-colour version still separates.
+
+- **Geometry**, defined once: `lib/core/brand/brand_mark.dart` (SVG path data, pure Dart).
+- **Widgets** in `lib/widgets/aiovy_logo.dart`:
+  - `AiovyLogoMark`: the symbol;
+  - `AiovyWordmark`: horizontal;
+  - `AiovyLogoStacked`: primary;
+  - each accepts `monochrome:`.
+- **Files** in `assets/brand/`: symbol (colour, mono, white), horizontal and primary SVGs. See `assets/brand/README.md`.
+- **Platform:**
+  - Android legacy and adaptive launcher icons;
+  - Android launch screen (symbol on ivory; Android 12+ splash colours);
+  - app label "AIOVY";
+  - web icons, favicon, manifest and page title.
+- **Generation:** everything is generated from the same geometry by `test/brand_assets_test.dart`
+  (`--dart-define=BRAND_EXPORT=true`).
+
+No trademark or similarity review has been done; the logo's uniqueness has not been established.
+
+## Intro flow
+
+- **Native launch screen:** the symbol on ivory, shown only while the engine starts. There is no artificial delay.
+- **Welcome:**
+  - the primary logo settles in with a short fade and rise; the headline "Smarter support for maternal care.", the
+    supporting sentence, **Get started** and **Sign in** follow;
+  - all are usable immediately;
+  - the motion is skipped under reduced motion;
+  - one quiet blush leaf is the only decoration.
+- **Onboarding:**
+  - opened by **Get started**; three short pages (six measurements, explainability, decision support), each with an
+    illustration built from app UI elements;
+  - the illustrations contain no numbers, so they can't pass for data;
+  - Skip, page dots, Next, then **Continue to sign in**.
+- **No persistence:** the app persists nothing between launches and no dependency was added. Returning users tap
+  **Sign in** to skip the introduction; there is no stored "onboarding completed" flag.
+- **Login:**
+  - horizontal logo, and Back when opened from Welcome;
+  - "Welcome back / Sign in to continue.";
+  - an icon password toggle with "Show / Hide password" tooltips;
+  - one honest prototype line in place of the help dialog and boxed note;
+  - validation, autofill and sign-in behaviour are unchanged.
+
+## Tests
+
+59 passed, 3 skipped (the opt-in screenshot and brand tools). New `test/intro_test.dart` covers:
+- brand geometry bounds;
+- SVG/geometry consistency;
+- logo variants at 16 px and 2× text;
+- Get started → 3 pages → sign-in;
+- Skip;
+- Sign in and Back;
+- reduced motion;
+- the password toggle;
+- login validation and sign-in.

@@ -19,7 +19,8 @@ import 'package:aiovy/screens/processing/processing_screen.dart';
 import 'package:aiovy/screens/result/result_screen.dart';
 import 'package:aiovy/screens/settings/settings_screen.dart';
 import 'package:aiovy/screens/shap/shap_screen.dart';
-import 'package:aiovy/screens/splash/splash_screen.dart';
+import 'package:aiovy/screens/welcome/onboarding_screen.dart';
+import 'package:aiovy/screens/welcome/welcome_screen.dart';
 import 'package:aiovy/services/risk_classifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -91,8 +92,32 @@ void main() {
       assessedBy: 'Demo Clinician',
     );
 
-    await _render(tester, '01_splash', const SplashScreen());
-    await _render(tester, '02_login', const LoginScreen());
+    await _render(tester, '01_welcome', const WelcomeScreen());
+    for (var page = 1; page <= 3; page++) {
+      await _render(
+        tester,
+        '01_onboarding_$page',
+        const OnboardingScreen(),
+        interact: () async {
+          for (var i = 1; i < page; i++) {
+            await tester.tap(find.text('Next'));
+            await tester.pumpAndSettle();
+          }
+        },
+      );
+    }
+    // Opened from Welcome, so it shows the back arrow.
+    await _render(
+      tester,
+      '02_login',
+      const WelcomeScreen(),
+      interact: () async {
+        await tester.tap(find.text('Sign in'));
+        await tester.pumpAndSettle();
+      },
+    );
+    await _render(tester, '22_desktop_welcome', const WelcomeScreen(), size: const Size(1280, 900), dpr: 1);
+    await _render(tester, '23_desktop_login', const LoginScreen(), size: const Size(1280, 900), dpr: 1);
     await _render(tester, '03_home', const MainShell(), repository: repo, size: tall);
     await _render(tester, '04_assessment_empty', const AssessmentInputScreen(), repository: repo);
     await _render(

@@ -6,7 +6,7 @@ import 'package:aiovy/services/mock_risk_classifier.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('AIOVY opens on the splash screen', (WidgetTester tester) async {
+  testWidgets('AIOVY opens on the welcome screen', (WidgetTester tester) async {
     await tester.pumpWidget(AiovyApp(
       repository: PatientRepository(),
       settings: AppSettings(),

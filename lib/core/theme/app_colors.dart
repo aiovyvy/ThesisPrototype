@@ -60,6 +60,12 @@ class AppColors {
   static const Color onPrimaryFixed = Color(0xFF3E001D);
   static const Color onPrimaryFixedVariant = Color(0xFF82445F);
   static const Color brandPink = Color(0xFFA65B76); // logo stroke
+
+  /// Blush: icon tiles and quiet brand backgrounds (decorative only).
+  static const Color blush = Color(0xFFF8DDE3);
+
+  /// Soft rose in the symbol (leaf, baby's wrap). Decorative: 2.2:1.
+  static const Color brandSoft = Color(0xFFD29AAE);
   static const Color brandInk = Color(0xFF302B30); // logo ink / dark plum
   static const Color brandTint = Color(0xFFF7EFF2); // logo tile
 
