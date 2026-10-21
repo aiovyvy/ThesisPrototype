@@ -77,7 +77,7 @@ class ResultScreen extends StatelessWidget {
         final r = assessment.result;
         final level = r.riskLevel;
         final framing = ContributionFraming.of(r);
-        final top = r.featureContributions.take(3).toList();
+        final top = rankedContributions(r.featureContributions).take(3).toList();
         final scale = contributionScale(r.featureContributions);
         void openExplanation() => AppNavigator.push(context, ShapScreen(assessment: assessment));
 
@@ -131,14 +131,8 @@ class ResultScreen extends StatelessWidget {
                       ],
                       const SizedBox(height: 4),
                       const Divider(height: 20),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: LinkButton(
-                          label: 'Full explanation',
-                          trailingIcon: Icons.arrow_forward,
-                          onPressed: openExplanation,
-                        ),
-                      ),
+                      ExplanationButton(onPressed: openExplanation),
+                      const SizedBox(height: 12),
                     ],
                   ),
                 ),

@@ -40,38 +40,38 @@ class ContributionFraming {
   /// Legend / axis label for negative values.
   String get negativeLabel => relativeToPrediction ? 'Against ${level.label}' : 'Toward lower risk';
 
-  /// Plain-language strength and direction of one value.
+  /// Direction uses the actual sign, without arbitrary strength cutoffs.
   String describe(double v) {
-    final a = v.abs();
-    if (a < 0.05) return 'Little effect on this result';
-    final strength = a >= 0.3 ? 'Strongly' : (a >= 0.15 ? 'Moderately' : 'Slightly');
+    if (v == 0) return 'No contribution';
     if (relativeToPrediction) {
-      return '$strength ${v > 0 ? 'supports' : 'against'} ${level.label}';
+      return '${v > 0 ? 'Supports' : 'Opposes'} ${level.label}';
     }
-    return '$strength ${v > 0 ? 'toward higher' : 'toward lower'} risk';
+    return v > 0 ? 'Toward higher risk' : 'Toward lower risk';
   }
 
-  /// One or two sentences naming the indicators that mattered most.
-  String summary(List<FeatureContribution> contributions) {
-    String names(Iterable<FeatureContribution> fs) => fs.map((f) => f.indicator.longLabel).join(' and ');
-    final pos = contributions.where((f) => f.value >= 0.05).take(2);
-    final neg = contributions.where((f) => f.value <= -0.05).take(1);
-
-    final String first;
-    if (relativeToPrediction) {
-      first = pos.isEmpty
-          ? 'No single indicator strongly supported the ${level.label} result.'
-          : '${names(pos)} ${pos.length > 1 ? 'were' : 'was'} the strongest support for ${level.label}.';
-    } else {
-      first = pos.isEmpty
-          ? 'No indicator strongly pushed toward higher risk for this assessment.'
-          : '${names(pos)} pushed most toward higher risk.';
+  /// Deterministic summary of the largest contribution in each direction.
+  /// Sorting here also covers callers passing unsorted historical results.
+  String summary(List<FeatureContribution> contributions, {String Function(Indicator)? valueText}) {
+    final ranked = rankedContributions(contributions);
+    final pos = ranked.where((f) => f.value > 0);
+    final neg = ranked.where((f) => f.value < 0);
+    String detail(FeatureContribution f) =>
+        '${f.indicator.longLabel}${valueText == null ? '' : ' (${valueText(f.indicator)})'} '
+        '[${Fmt.contribution(f.value)}]';
+    if (ranked.isEmpty) return 'No contributions were returned for this assessment.';
+    if (pos.isEmpty && neg.isEmpty) {
+      return 'All returned contributions are zero. No indicator moved the model output away from its baseline.';
     }
-    if (neg.isEmpty) return first;
-    final second = relativeToPrediction
-        ? '${names(neg)} counted most against it.'
-        : '${names(neg)} pulled most toward lower risk.';
-    return '$first $second';
+    final first = pos.isEmpty
+        ? (relativeToPrediction
+            ? 'No indicator had a positive contribution supporting ${level.label}.'
+            : 'No indicator pushed toward higher risk.')
+        : '${detail(pos.first)} ${relativeToPrediction ? 'provided the largest support for ${level.label}' : 'pushed most toward higher risk'}'
+            '${pos.length > 1 && pos.elementAt(1).value == pos.first.value ? ' (tied)' : ''}.';
+    if (neg.isEmpty) return '$first No indicator had a negative contribution.';
+    return '$first ${detail(neg.first)} '
+        '${relativeToPrediction ? 'provided the largest opposing contribution to ${level.label}' : 'pushed most toward lower risk'}'
+        '${neg.length > 1 && neg.elementAt(1).value == neg.first.value ? ' (tied)' : ''}.';
   }
 }
 
@@ -137,19 +137,20 @@ class ContributionBar extends StatelessWidget {
     final frac = maxAbs <= 0 ? 0.0 : (v.abs() / maxAbs).clamp(0.0, 1.0).toDouble();
     final description = framing.describe(v);
     final color = v >= 0 ? AppColors.shapPositive : AppColors.shapNegative;
-    final strong = v.abs() >= 0.05;
 
     return Semantics(
-      label: '${contribution.indicator.longLabel}, $valueText. $description. SHAP value ${Fmt.signed(v)}.',
+      label:
+          '${contribution.indicator.longLabel}, $valueText. $description. ${framing.relativeToPrediction ? 'SHAP value' : 'Demo score'} ${Fmt.contribution(v)}.',
       excludeSemantics: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(child: Text(contribution.indicator.longLabel, style: AppTextStyles.labelLg)),
-              const SizedBox(width: 8),
+              Text(contribution.indicator.longLabel, style: AppTextStyles.labelLg),
               Text(valueText, style: AppTextStyles.labelMd.tabular.copyWith(color: AppColors.onSurfaceVariant)),
             ],
           ),
@@ -162,9 +163,8 @@ class ContributionBar extends StatelessWidget {
                   child: LayoutBuilder(
                     builder: (context, c) {
                       final half = c.maxWidth / 2;
-                      // Even a near-zero value shows a sliver, so every row has
-                      // a visible mark next to the axis.
-                      final len = (half * frac).clamp(2.0, half).toDouble();
+                      // Nonzero values retain a visible mark; zero has no bar.
+                      final len = v == 0 ? 0.0 : (half * frac).clamp(2.0, half).toDouble();
                       return Stack(
                         children: [
                           Positioned.fill(
@@ -204,24 +204,22 @@ class ContributionBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              SizedBox(
-                width: 48,
+              Flexible(
                 child: Text(
-                  Fmt.signed(v),
+                  Fmt.contribution(v),
                   textAlign: TextAlign.end,
                   style: AppTextStyles.labelSm.tabular.copyWith(color: AppColors.onSurfaceVariant),
                 ),
               ),
             ],
           ),
-          // "Little effect" rows need no sentence; the bar and value say it.
-          if (showDescription && strong) ...[
+          if (showDescription) ...[
             const SizedBox(height: 6),
             Text(
               description,
               style: AppTextStyles.labelSm
                   .weight(FontWeight.w500)
-                  .copyWith(color: strong && v > 0 ? AppColors.primary : AppColors.onSurfaceVariant),
+                  .copyWith(color: v > 0 ? AppColors.primaryDark : AppColors.onSurfaceVariant),
             ),
           ],
         ],
@@ -230,10 +228,59 @@ class ContributionBar extends StatelessWidget {
   }
 }
 
-/// Largest absolute contribution, with a floor so a result whose values are
-/// all tiny doesn't render them as full-length bars.
+/// Largest absolute first; ties use the canonical indicator order.
+List<FeatureContribution> rankedContributions(List<FeatureContribution> contributions) =>
+    List<FeatureContribution>.of(contributions)
+      ..sort((a, b) {
+        final impact = b.value.abs().compareTo(a.value.abs());
+        return impact == 0 ? a.indicator.index.compareTo(b.indicator.index) : impact;
+      });
+
+/// A zero-only result has a safe scale but no contribution bars.
 double contributionScale(List<FeatureContribution> contributions) =>
-    contributions.fold<double>(0.1, (m, f) => f.value.abs() > m ? f.value.abs() : m);
+    contributions.fold<double>(0, (m, f) => f.value.abs() > m ? f.value.abs() : m);
+
+/// Full-width, keyboard-accessible explanation entry point with wrapping text.
+class ExplanationButton extends StatelessWidget {
+  const ExplanationButton({super.key, required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: double.infinity,
+        child: FilledButton(
+          onPressed: onPressed,
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.onPrimary,
+            minimumSize: const Size(48, 72),
+            padding: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.psychology_outlined, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Why did AI predict this?', style: AppTextStyles.labelLg.copyWith(color: AppColors.onPrimary)),
+                    const SizedBox(height: 4),
+                    Text('See how your six indicators shaped this result',
+                        style: AppTextStyles.bodySm.copyWith(color: AppColors.onPrimary)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.arrow_forward, size: 20),
+            ],
+          ),
+        ),
+      );
+}
 
 /// The three class probabilities as labelled horizontal bars. The predicted
 /// level is emphasised; the others are shown in neutral grey so colour

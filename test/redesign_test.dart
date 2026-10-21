@@ -48,19 +48,19 @@ void main() {
       expect(f.negativeLabel, 'Against Low Risk');
       // A positive value for a Low prediction supports Low – it does not
       // "raise risk".
-      expect(f.describe(0.2), 'Moderately supports Low Risk');
-      expect(f.describe(-0.08), 'Slightly against Low Risk');
-      expect(f.describe(0.01), 'Little effect on this result');
+      expect(f.describe(0.2), 'Supports Low Risk');
+      expect(f.describe(-0.08), 'Opposes Low Risk');
+      expect(f.describe(0.01), 'Supports Low Risk');
       expect(
         f.summary(_apiLow().featureContributions),
-        'Systolic Blood Pressure was the strongest support for Low Risk. Blood Glucose counted most against it.',
+        'Systolic Blood Pressure [+0.2000] provided the largest support for Low Risk. Blood Glucose [\u22120.0800] provided the largest opposing contribution to Low Risk.',
       );
     });
 
     test('the documented API example reads as support for High Risk', () {
       final f = ContributionFraming.of(apiExampleResult);
       expect(f.positiveLabel, 'Supports High Risk');
-      expect(f.describe(0.4376), 'Strongly supports High Risk');
+      expect(f.describe(0.4376), 'Supports High Risk');
     });
 
     test('demo heuristic values keep their toward-higher-risk meaning', () {
@@ -73,8 +73,9 @@ void main() {
       );
       final f = ContributionFraming.of(demo);
       expect(f.positiveLabel, 'Toward higher risk');
-      expect(f.describe(0.1), 'Slightly toward higher risk');
-      expect(f.summary(demo.featureContributions), 'Maternal Age pushed most toward higher risk.');
+      expect(f.describe(0.1), 'Toward higher risk');
+      expect(f.summary(demo.featureContributions),
+          'Maternal Age [+0.1000] pushed most toward higher risk. No indicator had a negative contribution.');
     });
   });
 

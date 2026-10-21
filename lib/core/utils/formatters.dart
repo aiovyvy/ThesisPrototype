@@ -56,6 +56,13 @@ class Fmt {
   /// "+0.38" / "−0.12"
   static String signed(double v) => v >= 0 ? '+${v.toStringAsFixed(2)}' : '−${v.abs().toStringAsFixed(2)}';
 
+  /// SHAP precision without rounding a nonzero value to zero.
+  static String contribution(double v) {
+    if (v == 0) return '0.0000';
+    final magnitude = v.abs() < 0.0001 ? v.abs().toString() : v.abs().toStringAsFixed(4);
+    return '${v > 0 ? '+' : '\u2212'}$magnitude';
+  }
+
   /// "142 mmHg", "5.6 mmol/L", "98.4°F", "32 yrs" in the user's units.
   static String indicator(Indicator i, MaternalIndicators m, AppSettings s) => switch (i) {
         Indicator.age => '${m.age} yrs',
