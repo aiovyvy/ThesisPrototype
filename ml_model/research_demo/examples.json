@@ -1,0 +1,131 @@
+{
+  "model_id": "hossain_6039_rf_experimental_v1",
+  "sha256": {
+    "models/aiovy_random_forest.joblib": "513edbb98a8964e7569f24a34f304eb1c25db7b2a8d4cfc253b4b01877f58d94",
+    "data/processed/maternal_aiovy_candidate_6039.csv": "e179ec70409a391013bec98b3e90842addc7a19036f46dbc15e72d1ae208e233",
+    "reports/notebook_04/heldout_test_predictions.csv": "cb7f1b94a1d744df2593edbbad640cdc4679de2ea0aedc9a01542c558c580e15"
+  },
+  "selection": "First correct and first incorrect held-out prediction per supplied class in encoder order. Selected illustrations, not an unbiased evaluation sample.",
+  "examples": [
+    {
+      "id": "R1",
+      "processed_row_index": 0,
+      "split": "held-out",
+      "dataset_label": "high risk",
+      "measurements": {
+        "age": 20.0,
+        "systolic_bp": 161.0,
+        "diastolic_bp": 100.0,
+        "blood_glucose": 5.8,
+        "temperature_f": 97.5,
+        "heart_rate": 91.0
+      },
+      "expected_prediction": "high risk",
+      "expected_probabilities": {
+        "high risk": 1.0,
+        "low risk": 0.0,
+        "mid risk": 0.0
+      }
+    },
+    {
+      "id": "R2",
+      "processed_row_index": 223,
+      "split": "held-out",
+      "dataset_label": "high risk",
+      "measurements": {
+        "age": 33.0,
+        "systolic_bp": 127.0,
+        "diastolic_bp": 91.0,
+        "blood_glucose": 6.6,
+        "temperature_f": 100.2,
+        "heart_rate": 94.0
+      },
+      "expected_prediction": "mid risk",
+      "expected_probabilities": {
+        "high risk": 0.42300000000000004,
+        "low risk": 0.0,
+        "mid risk": 0.577
+      }
+    },
+    {
+      "id": "R3",
+      "processed_row_index": 12,
+      "split": "held-out",
+      "dataset_label": "low risk",
+      "measurements": {
+        "age": 23.0,
+        "systolic_bp": 126.0,
+        "diastolic_bp": 84.0,
+        "blood_glucose": 4.7,
+        "temperature_f": 98.6,
+        "heart_rate": 76.0
+      },
+      "expected_prediction": "low risk",
+      "expected_probabilities": {
+        "high risk": 0.0,
+        "low risk": 1.0,
+        "mid risk": 0.0
+      }
+    },
+    {
+      "id": "R4",
+      "processed_row_index": 4803,
+      "split": "held-out",
+      "dataset_label": "low risk",
+      "measurements": {
+        "age": 21.0,
+        "systolic_bp": 120.0,
+        "diastolic_bp": 93.0,
+        "blood_glucose": 5.9,
+        "temperature_f": 98.6,
+        "heart_rate": 70.0
+      },
+      "expected_prediction": "mid risk",
+      "expected_probabilities": {
+        "high risk": 0.095,
+        "low risk": 0.02,
+        "mid risk": 0.885
+      }
+    },
+    {
+      "id": "R5",
+      "processed_row_index": 5,
+      "split": "held-out",
+      "dataset_label": "mid risk",
+      "measurements": {
+        "age": 21.0,
+        "systolic_bp": 142.0,
+        "diastolic_bp": 89.0,
+        "blood_glucose": 5.6,
+        "temperature_f": 98.6,
+        "heart_rate": 85.0
+      },
+      "expected_prediction": "mid risk",
+      "expected_probabilities": {
+        "high risk": 0.01,
+        "low risk": 0.0,
+        "mid risk": 0.99
+      }
+    },
+    {
+      "id": "R6",
+      "processed_row_index": 147,
+      "split": "held-out",
+      "dataset_label": "mid risk",
+      "measurements": {
+        "age": 21.0,
+        "systolic_bp": 114.0,
+        "diastolic_bp": 87.0,
+        "blood_glucose": 6.4,
+        "temperature_f": 100.6,
+        "heart_rate": 136.0
+      },
+      "expected_prediction": "high risk",
+      "expected_probabilities": {
+        "high risk": 0.5121666666666664,
+        "low risk": 0.0,
+        "mid risk": 0.4878333333333335
+      }
+    }
+  ]
+}

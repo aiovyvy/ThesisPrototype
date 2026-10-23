@@ -13,6 +13,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
 import '../../widgets/settings_widgets.dart';
+import '../research/research_demo_screen.dart';
 
 /// Stitch: settings. All controls are functional (in-memory only).
 class SettingsScreen extends StatelessWidget {
@@ -160,6 +161,17 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => _confirmClearSession(context),
               ),
               _PredictionSourceRow(isDemo: scope.classifier.isDemo, modelName: scope.classifier.modelName),
+            ]),
+            const SizedBox(height: AppSpacing.lg),
+            const SectionLabel('Research'),
+            SettingsGroup(children: [
+              SettingsRow(
+                icon: Icons.science_outlined,
+                title: 'Research Demonstration',
+                subtitle: 'Experimental research model · six fixed examples only',
+                showChevron: true,
+                onTap: () => AppNavigator.pushLocation(context, '/research-demonstration', const ResearchDemoScreen()),
+              ),
             ]),
             const SizedBox(height: AppSpacing.lg),
             const SectionLabel('About'),

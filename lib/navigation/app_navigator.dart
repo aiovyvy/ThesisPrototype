@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'route_session.dart';
 
 /// The three primary tabs.
 enum ShellTab { home, patients, profile }
@@ -70,6 +71,31 @@ class AppNavigator {
 
   static Future<T?> push<T>(BuildContext context, Widget page) => Navigator.of(context).push<T>(route<T>(page));
 
+  static Future<T?> pushLocation<T>(BuildContext context, String location, Widget page) {
+    final session = RouteSession.maybeOf(context);
+    if (session == null) return push<T>(context, page);
+    session.go(location);
+    return Future<T?>.value();
+  }
+
+  static void completeSignIn(BuildContext context, Widget fallback) {
+    final session = RouteSession.maybeOf(context);
+    if (session == null) {
+      resetTo(context, fallback);
+    } else {
+      session.signIn();
+    }
+  }
+
+  static void completeSignOut(BuildContext context, Widget fallback) {
+    final session = RouteSession.maybeOf(context);
+    if (session == null) {
+      resetTo(context, fallback);
+    } else {
+      session.signOut();
+    }
+  }
+
   static Future<T?> pushFade<T>(BuildContext context, Widget page) => Navigator.of(context).push<T>(fadeRoute<T>(page));
 
   /// Replaces the current screen with a fade (non-hierarchical change).
@@ -85,6 +111,15 @@ class AppNavigator {
 
   /// Switches tab and returns to the shell from anywhere.
   static void openTab(BuildContext context, ShellTab tab) {
+    final session = RouteSession.maybeOf(context);
+    if (session != null) {
+      session.go(switch (tab) {
+        ShellTab.home => '/dashboard',
+        ShellTab.patients => '/patients',
+        ShellTab.profile => '/profile',
+      });
+      return;
+    }
     currentTab.value = tab;
     popToShell(context);
   }

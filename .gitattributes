@@ -1,0 +1,4 @@
+# Preserve the audited byte-level SHA-256 inputs on every Git checkout.
+/ml_model/research_demo/examples.json text eol=crlf
+/ml_model/data/processed/maternal_aiovy_candidate_6039.csv text eol=crlf
+/ml_model/reports/notebook_04/heldout_test_predictions.csv text eol=crlf

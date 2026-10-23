@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
     await Future<void>.delayed(const Duration(milliseconds: 500)); // simulated auth
     if (!mounted) return;
     AppNavigator.currentTab.value = ShellTab.home;
-    AppNavigator.resetTo(context, const MainShell());
+    AppNavigator.completeSignIn(context, const MainShell());
   }
 
   void _showInfo(String title, String body) {

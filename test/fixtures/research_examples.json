@@ -1,0 +1,314 @@
+[
+  {
+    "model_id": "hossain_6039_rf_experimental_v1",
+    "model_label": "Experimental research model",
+    "warning": "Demonstration only. Must not be used for clinical decisions. Clinical validity has not been established.",
+    "glucose_note": "Provisionally mmol/L; source documentation contains conflicting unit labels. Values are unchanged, with no glucose conversion.",
+    "example_id": "R1",
+    "split": "held-out",
+    "dataset_label": "high risk",
+    "prediction": "high risk",
+    "probabilities": {
+      "high risk": 1.0,
+      "low risk": 0.0,
+      "mid risk": 0.0
+    },
+    "measurements": {
+      "age": 20.0,
+      "systolic_bp": 161.0,
+      "diastolic_bp": 100.0,
+      "blood_glucose": 5.8,
+      "temperature_f": 97.5,
+      "heart_rate": 91.0
+    },
+    "feature_units": {
+      "age": "years",
+      "systolic_bp": "mmHg",
+      "diastolic_bp": "mmHg",
+      "blood_glucose_mmol_l": "provisionally mmol/L",
+      "body_temperature_c": "Celsius",
+      "heart_rate": "bpm"
+    },
+    "model_inputs": {
+      "age": 20.0,
+      "systolic_bp": 161.0,
+      "diastolic_bp": 100.0,
+      "blood_glucose_mmol_l": 5.8,
+      "body_temperature_c": 36.388888888888886,
+      "heart_rate": 91.0
+    },
+    "shap": {
+      "explained_class": "high risk",
+      "base_value": 0.3309324492333195,
+      "contributions": {
+        "age": -0.0012337989553993102,
+        "systolic_bp": 0.39633048721657016,
+        "diastolic_bp": 0.21704819765758415,
+        "blood_glucose_mmol_l": -0.012512596753542946,
+        "body_temperature_c": 0.010171299365154133,
+        "heart_rate": 0.05926396223630479
+      },
+      "reconstructed_probability": 0.9999999999999905
+    }
+  },
+  {
+    "model_id": "hossain_6039_rf_experimental_v1",
+    "model_label": "Experimental research model",
+    "warning": "Demonstration only. Must not be used for clinical decisions. Clinical validity has not been established.",
+    "glucose_note": "Provisionally mmol/L; source documentation contains conflicting unit labels. Values are unchanged, with no glucose conversion.",
+    "example_id": "R2",
+    "split": "held-out",
+    "dataset_label": "high risk",
+    "prediction": "mid risk",
+    "probabilities": {
+      "high risk": 0.42300000000000004,
+      "low risk": 0.0,
+      "mid risk": 0.577
+    },
+    "measurements": {
+      "age": 33.0,
+      "systolic_bp": 127.0,
+      "diastolic_bp": 91.0,
+      "blood_glucose": 6.6,
+      "temperature_f": 100.2,
+      "heart_rate": 94.0
+    },
+    "feature_units": {
+      "age": "years",
+      "systolic_bp": "mmHg",
+      "diastolic_bp": "mmHg",
+      "blood_glucose_mmol_l": "provisionally mmol/L",
+      "body_temperature_c": "Celsius",
+      "heart_rate": "bpm"
+    },
+    "model_inputs": {
+      "age": 33.0,
+      "systolic_bp": 127.0,
+      "diastolic_bp": 91.0,
+      "blood_glucose_mmol_l": 6.6,
+      "body_temperature_c": 37.888888888888886,
+      "heart_rate": 94.0
+    },
+    "shap": {
+      "explained_class": "mid risk",
+      "base_value": 0.3364753418980521,
+      "contributions": {
+        "age": 0.10688127604642514,
+        "systolic_bp": 0.049218943454243026,
+        "diastolic_bp": 0.06901053184041868,
+        "blood_glucose_mmol_l": 0.08526076253008677,
+        "body_temperature_c": -0.11773545727153444,
+        "heart_rate": 0.0478886015023019
+      },
+      "reconstructed_probability": 0.5769999999999931
+    }
+  },
+  {
+    "model_id": "hossain_6039_rf_experimental_v1",
+    "model_label": "Experimental research model",
+    "warning": "Demonstration only. Must not be used for clinical decisions. Clinical validity has not been established.",
+    "glucose_note": "Provisionally mmol/L; source documentation contains conflicting unit labels. Values are unchanged, with no glucose conversion.",
+    "example_id": "R3",
+    "split": "held-out",
+    "dataset_label": "low risk",
+    "prediction": "low risk",
+    "probabilities": {
+      "high risk": 0.0,
+      "low risk": 1.0,
+      "mid risk": 0.0
+    },
+    "measurements": {
+      "age": 23.0,
+      "systolic_bp": 126.0,
+      "diastolic_bp": 84.0,
+      "blood_glucose": 4.7,
+      "temperature_f": 98.6,
+      "heart_rate": 76.0
+    },
+    "feature_units": {
+      "age": "years",
+      "systolic_bp": "mmHg",
+      "diastolic_bp": "mmHg",
+      "blood_glucose_mmol_l": "provisionally mmol/L",
+      "body_temperature_c": "Celsius",
+      "heart_rate": "bpm"
+    },
+    "model_inputs": {
+      "age": 23.0,
+      "systolic_bp": 126.0,
+      "diastolic_bp": 84.0,
+      "blood_glucose_mmol_l": 4.7,
+      "body_temperature_c": 37.0,
+      "heart_rate": 76.0
+    },
+    "shap": {
+      "explained_class": "low risk",
+      "base_value": 0.3325922088686282,
+      "contributions": {
+        "age": 0.08359371508898625,
+        "systolic_bp": 0.18626580033398538,
+        "diastolic_bp": 0.1227604835888654,
+        "blood_glucose_mmol_l": 0.05602572954240605,
+        "body_temperature_c": 0.12551675966331888,
+        "heart_rate": 0.09324530291380986
+      },
+      "reconstructed_probability": 1.0
+    }
+  },
+  {
+    "model_id": "hossain_6039_rf_experimental_v1",
+    "model_label": "Experimental research model",
+    "warning": "Demonstration only. Must not be used for clinical decisions. Clinical validity has not been established.",
+    "glucose_note": "Provisionally mmol/L; source documentation contains conflicting unit labels. Values are unchanged, with no glucose conversion.",
+    "example_id": "R4",
+    "split": "held-out",
+    "dataset_label": "low risk",
+    "prediction": "mid risk",
+    "probabilities": {
+      "high risk": 0.095,
+      "low risk": 0.02,
+      "mid risk": 0.885
+    },
+    "measurements": {
+      "age": 21.0,
+      "systolic_bp": 120.0,
+      "diastolic_bp": 93.0,
+      "blood_glucose": 5.9,
+      "temperature_f": 98.6,
+      "heart_rate": 70.0
+    },
+    "feature_units": {
+      "age": "years",
+      "systolic_bp": "mmHg",
+      "diastolic_bp": "mmHg",
+      "blood_glucose_mmol_l": "provisionally mmol/L",
+      "body_temperature_c": "Celsius",
+      "heart_rate": "bpm"
+    },
+    "model_inputs": {
+      "age": 21.0,
+      "systolic_bp": 120.0,
+      "diastolic_bp": 93.0,
+      "blood_glucose_mmol_l": 5.9,
+      "body_temperature_c": 37.0,
+      "heart_rate": 70.0
+    },
+    "shap": {
+      "explained_class": "mid risk",
+      "base_value": 0.3364753418980521,
+      "contributions": {
+        "age": -0.010827198055472116,
+        "systolic_bp": -0.017770378179795078,
+        "diastolic_bp": 0.4962904900277101,
+        "blood_glucose_mmol_l": -0.019886112132776614,
+        "body_temperature_c": 0.03824709713955909,
+        "heart_rate": 0.062470759302720495
+      },
+      "reconstructed_probability": 0.884999999999998
+    }
+  },
+  {
+    "model_id": "hossain_6039_rf_experimental_v1",
+    "model_label": "Experimental research model",
+    "warning": "Demonstration only. Must not be used for clinical decisions. Clinical validity has not been established.",
+    "glucose_note": "Provisionally mmol/L; source documentation contains conflicting unit labels. Values are unchanged, with no glucose conversion.",
+    "example_id": "R5",
+    "split": "held-out",
+    "dataset_label": "mid risk",
+    "prediction": "mid risk",
+    "probabilities": {
+      "high risk": 0.01,
+      "low risk": 0.0,
+      "mid risk": 0.99
+    },
+    "measurements": {
+      "age": 21.0,
+      "systolic_bp": 142.0,
+      "diastolic_bp": 89.0,
+      "blood_glucose": 5.6,
+      "temperature_f": 98.6,
+      "heart_rate": 85.0
+    },
+    "feature_units": {
+      "age": "years",
+      "systolic_bp": "mmHg",
+      "diastolic_bp": "mmHg",
+      "blood_glucose_mmol_l": "provisionally mmol/L",
+      "body_temperature_c": "Celsius",
+      "heart_rate": "bpm"
+    },
+    "model_inputs": {
+      "age": 21.0,
+      "systolic_bp": 142.0,
+      "diastolic_bp": 89.0,
+      "blood_glucose_mmol_l": 5.6,
+      "body_temperature_c": 37.0,
+      "heart_rate": 85.0
+    },
+    "shap": {
+      "explained_class": "mid risk",
+      "base_value": 0.3364753418980521,
+      "contributions": {
+        "age": -0.0028535983999322515,
+        "systolic_bp": 0.549182765552348,
+        "diastolic_bp": 0.004676614243750241,
+        "blood_glucose_mmol_l": 0.01633432309932304,
+        "body_temperature_c": 0.026123264510124214,
+        "heart_rate": 0.06006128909633075
+      },
+      "reconstructed_probability": 0.9899999999999962
+    }
+  },
+  {
+    "model_id": "hossain_6039_rf_experimental_v1",
+    "model_label": "Experimental research model",
+    "warning": "Demonstration only. Must not be used for clinical decisions. Clinical validity has not been established.",
+    "glucose_note": "Provisionally mmol/L; source documentation contains conflicting unit labels. Values are unchanged, with no glucose conversion.",
+    "example_id": "R6",
+    "split": "held-out",
+    "dataset_label": "mid risk",
+    "prediction": "high risk",
+    "probabilities": {
+      "high risk": 0.5121666666666664,
+      "low risk": 0.0,
+      "mid risk": 0.4878333333333335
+    },
+    "measurements": {
+      "age": 21.0,
+      "systolic_bp": 114.0,
+      "diastolic_bp": 87.0,
+      "blood_glucose": 6.4,
+      "temperature_f": 100.6,
+      "heart_rate": 136.0
+    },
+    "feature_units": {
+      "age": "years",
+      "systolic_bp": "mmHg",
+      "diastolic_bp": "mmHg",
+      "blood_glucose_mmol_l": "provisionally mmol/L",
+      "body_temperature_c": "Celsius",
+      "heart_rate": "bpm"
+    },
+    "model_inputs": {
+      "age": 21.0,
+      "systolic_bp": 114.0,
+      "diastolic_bp": 87.0,
+      "blood_glucose_mmol_l": 6.4,
+      "body_temperature_c": 38.111111111111114,
+      "heart_rate": 136.0
+    },
+    "shap": {
+      "explained_class": "high risk",
+      "base_value": 0.3309324492333195,
+      "contributions": {
+        "age": -0.042503241816353676,
+        "systolic_bp": -0.026497743817467074,
+        "diastolic_bp": -0.022916847557660387,
+        "blood_glucose_mmol_l": -0.03837367314400357,
+        "body_temperature_c": 0.23658717931186418,
+        "heart_rate": 0.07493854445696331
+      },
+      "reconstructed_probability": 0.5121666666666622
+    }
+  }
+]

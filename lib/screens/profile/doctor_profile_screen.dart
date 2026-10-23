@@ -42,7 +42,7 @@ class DoctorProfileScreen extends StatelessWidget {
     if (ok == true && context.mounted) {
       repository.clearSession();
       AppNavigator.currentTab.value = ShellTab.home;
-      AppNavigator.resetTo(context, const LoginScreen());
+      AppNavigator.completeSignOut(context, const LoginScreen());
     }
   }
 
@@ -125,7 +125,7 @@ class DoctorProfileScreen extends StatelessWidget {
                 subtitle: 'Units (${scope.settings.glucoseUnit.label}, ${scope.settings.tempUnit.label}), '
                     'alerts & privacy',
                 showChevron: true,
-                onTap: () => AppNavigator.push(context, const SettingsScreen()),
+                onTap: () => AppNavigator.pushLocation(context, '/settings', const SettingsScreen()),
               ),
             ]),
             const SizedBox(height: AppSpacing.xl),
