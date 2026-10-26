@@ -37,7 +37,8 @@ Last reviewed: 2026-10-21, branch `feature/ui-redesign`.
 
 **Authentication and access**
 - Any non-empty email and password signs in. There are no user accounts, roles, session timeout or lockout.
-- The "Remember this workstation" switch does nothing, and the screen says so.
+- Web sign-in now enables a clearly labelled, tab-scoped **DEMO-ONLY** marker in `sessionStorage`. It restores UI access after refresh, not identity or records. Anyone can inspect or change it; it is not authentication and is never sent to either API. See [mechanism, limitations and manual checks](demo-browser-session.md).
+- The mobile "Remember this workstation" switch remains an in-memory preference. Web instead explains its temporary demo marker and disables credential autofill hints.
 - Records show who assessed them as a display name ("Demo Clinician"), not a verified user.
 
 **Data storage**

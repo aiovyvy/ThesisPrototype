@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
@@ -8,6 +9,7 @@ import '../../data/mock/mock_clinician.dart';
 import '../../data/repositories/app_settings.dart';
 import '../../navigation/app_navigator.dart';
 import '../../navigation/main_shell.dart';
+import '../../navigation/route_session.dart';
 import '../../state/app_scope.dart';
 import '../../widgets/aiovy_logo.dart';
 import '../../widgets/buttons.dart';
@@ -16,8 +18,13 @@ import '../../widgets/form_fields.dart';
 import '../../widgets/settings_widgets.dart';
 
 /// Stitch: doctor_login. Prototype login – any non-empty credentials work.
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatefulWidget implements RestorableWebPage {
   const LoginScreen({super.key});
+
+  @override
+  String get restorableWebLocation => '/login';
+  @override
+  bool get requiresDemoAccess => false;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -96,6 +103,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: AppSpacing.lg),
                   // Before the fields: this sign-in checks nothing.
                   const DemoAccessBanner(),
+                  if (kIsWeb) ...[
+                    const SizedBox(height: 12),
+                    const InfoNote(
+                      title: 'Temporary DEMO-ONLY browser session',
+                      text: 'Sign in enables a non-secret demo-mode marker for this tab. It survives refresh, '
+                          'but does not save credentials or patient data and is not authentication. Logout clears it.',
+                      icon: Icons.science_outlined,
+                      circleIcon: false,
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   _card(settings),
                   const SizedBox(height: AppSpacing.lg),
@@ -132,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   icon: Icons.badge_outlined,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  autofillHints: const [AutofillHints.email, AutofillHints.username],
+                  autofillHints: kIsWeb ? null : const [AutofillHints.email, AutofillHints.username],
                   validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your email or clinical ID' : null,
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -153,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   icon: Icons.lock_outline,
                   obscureText: _obscure,
                   textInputAction: TextInputAction.done,
-                  autofillHints: const [AutofillHints.password],
+                  autofillHints: kIsWeb ? null : const [AutofillHints.password],
                   onSubmitted: (_) => _signIn(),
                   validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
                   suffix: IconButton(
@@ -166,29 +183,30 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                MergeSemantics(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Remember this workstation', style: AppTextStyles.labelLg),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Not stored in this prototype',
-                              style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant),
-                            ),
-                          ],
+                if (!kIsWeb)
+                  MergeSemantics(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Remember this workstation', style: AppTextStyles.labelLg),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Not stored in this prototype',
+                                style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      AiovySwitch(
-                        value: settings.rememberWorkstation,
-                        onChanged: (v) => setState(() => settings.rememberWorkstation = v),
-                      ),
-                    ],
+                        AiovySwitch(
+                          value: settings.rememberWorkstation,
+                          onChanged: (v) => setState(() => settings.rememberWorkstation = v),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
                 const SizedBox(height: AppSpacing.lg),
                 PrimaryButton(
                   label: 'Sign in',

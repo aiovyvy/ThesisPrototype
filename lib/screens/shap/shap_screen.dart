@@ -8,6 +8,7 @@ import '../../core/utils/formatters.dart';
 import '../../models/assessment.dart';
 import '../../models/risk_level.dart';
 import '../../navigation/app_navigator.dart';
+import '../../navigation/route_session.dart';
 import '../../state/app_scope.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/buttons.dart';
@@ -17,10 +18,13 @@ import '../research/research_screen.dart';
 
 /// Deterministic explanations of the supplied prediction, with no clinical
 /// rules or generated medical interpretations.
-class ShapScreen extends StatelessWidget {
+class ShapScreen extends StatelessWidget implements TemporaryWebPage {
   const ShapScreen({super.key, required this.assessment});
 
   final Assessment assessment;
+
+  @override
+  String get temporaryWebLocation => '/explanation';
 
   @override
   Widget build(BuildContext context) {

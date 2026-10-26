@@ -1,0 +1,87 @@
+{
+  "description": "Synthetic inputs authored for UI workflow regression tests; responses captured from the unchanged local UCI API. Not patient records or clinical validation.",
+  "model_sha256": "ac714b00ff9a25278a94575218ed1a11b82887508ba12f0c2a2d9f64508a9c05",
+  "cases": [
+    {
+      "request": {
+        "Age": 25,
+        "SystolicBP": 110,
+        "DiastolicBP": 70,
+        "BS": 5.5,
+        "BodyTemp": 98.4,
+        "HeartRate": 75
+      },
+      "response": {
+        "risk_level": "low",
+        "probabilities": {
+          "low": 0.5247858306365758,
+          "moderate": 0.4270220935675937,
+          "high": 0.04819207579583053
+        },
+        "model_name": "Random Forest (UCI)",
+        "feature_contributions": {
+          "Age": -0.0018389973011822915,
+          "SystolicBP": 0.03059751732902401,
+          "DiastolicBP": 0.009150050413413227,
+          "BS": 0.09172599214883076,
+          "BodyTemp": 0.054628976455362674,
+          "HeartRate": 0.009380230309790653
+        }
+      }
+    },
+    {
+      "request": {
+        "Age": 29,
+        "SystolicBP": 130,
+        "DiastolicBP": 90,
+        "BS": 7.5,
+        "BodyTemp": 98.4,
+        "HeartRate": 85
+      },
+      "response": {
+        "risk_level": "moderate",
+        "probabilities": {
+          "low": 0.24654293667686422,
+          "moderate": 0.5648477550794461,
+          "high": 0.18860930824368957
+        },
+        "model_name": "Random Forest (UCI)",
+        "feature_contributions": {
+          "Age": 0.03296936713663479,
+          "SystolicBP": 0.16505810421708966,
+          "DiastolicBP": 0.021535272550417324,
+          "BS": 0.016643445783855546,
+          "BodyTemp": -0.003957669503258363,
+          "HeartRate": -0.002043290639183482
+        }
+      }
+    },
+    {
+      "request": {
+        "Age": 40,
+        "SystolicBP": 160,
+        "DiastolicBP": 110,
+        "BS": 12,
+        "BodyTemp": 101,
+        "HeartRate": 100
+      },
+      "response": {
+        "risk_level": "high",
+        "probabilities": {
+          "low": 0.003661375661375661,
+          "moderate": 0.024573876852708117,
+          "high": 0.9717647474859162
+        },
+        "model_name": "Random Forest (UCI)",
+        "feature_contributions": {
+          "Age": 0.03101523131099526,
+          "SystolicBP": 0.2460581587731217,
+          "DiastolicBP": 0.10458127370328578,
+          "BS": 0.1893030010348424,
+          "BodyTemp": 0.029205732074486998,
+          "HeartRate": 0.03738593740441012
+        }
+      }
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import '../../core/utils/formatters.dart';
 import '../../data/repositories/app_settings.dart';
 import '../../models/maternal_indicators.dart';
 import '../../navigation/app_navigator.dart';
+import '../../navigation/route_session.dart';
 import '../../state/app_scope.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/buttons.dart';
@@ -19,11 +20,16 @@ import 'indicator_input_card.dart';
 import 'indicator_spec.dart';
 
 /// Stitch: patient_assessment_input. Collects the six model indicators.
-class AssessmentInputScreen extends StatefulWidget {
+class AssessmentInputScreen extends StatefulWidget implements RestorableWebPage {
   const AssessmentInputScreen({super.key, this.patientId});
 
   /// Existing patient, or null to auto-assign a new demo ID.
   final String? patientId;
+
+  @override
+  String get restorableWebLocation => '/assessment';
+  @override
+  bool get requiresDemoAccess => true;
 
   @override
   State<AssessmentInputScreen> createState() => _AssessmentInputScreenState();

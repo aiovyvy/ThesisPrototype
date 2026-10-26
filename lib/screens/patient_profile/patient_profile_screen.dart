@@ -9,6 +9,7 @@ import '../../models/assessment.dart';
 import '../../models/patient.dart';
 import '../../models/risk_level.dart';
 import '../../navigation/app_navigator.dart';
+import '../../navigation/route_session.dart';
 import '../../state/app_scope.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/buttons.dart';
@@ -19,10 +20,13 @@ import '../result/result_screen.dart';
 
 /// Stitch: patient_profile_history. A focused detail screen: current status,
 /// one primary action, the latest values, then history.
-class PatientProfileScreen extends StatefulWidget {
+class PatientProfileScreen extends StatefulWidget implements TemporaryWebPage {
   const PatientProfileScreen({super.key, required this.patientId});
 
   final String patientId;
+
+  @override
+  String get temporaryWebLocation => '/patient-details';
 
   @override
   State<PatientProfileScreen> createState() => _PatientProfileScreenState();
@@ -89,7 +93,20 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
       body: AppStateBuilder(builder: (context, scope) {
         final p = scope.repository.byId(widget.patientId);
         if (p == null) {
-          return const Center(child: Text('Patient not found'));
+          return Center(
+              child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text('Record unavailable', style: AppTextStyles.titleMd),
+              const SizedBox(height: AppSpacing.sm),
+              const Text(
+                  'This record is no longer in this session. Refresh and logout do not preserve entered records.',
+                  textAlign: TextAlign.center),
+              const SizedBox(height: AppSpacing.md),
+              PrimaryButton(
+                  label: 'Return to Patients', onPressed: () => AppNavigator.openTab(context, ShellTab.patients)),
+            ]),
+          ));
         }
         final s = scope.settings;
         final history =

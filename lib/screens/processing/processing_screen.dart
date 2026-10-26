@@ -10,6 +10,7 @@ import '../../core/utils/formatters.dart';
 import '../../data/repositories/app_settings.dart';
 import '../../models/assessment.dart';
 import '../../models/maternal_indicators.dart';
+import '../../navigation/route_session.dart';
 import '../../models/risk_result.dart';
 import '../../navigation/app_navigator.dart';
 import '../../services/risk_classifier.dart';
@@ -26,12 +27,15 @@ import '../result/result_screen.dart';
 /// parallel. If the classifier fails (e.g. the API server is unreachable),
 /// the screen shows the reason with **Try again** and **Edit values**; the
 /// entered values are kept on the form underneath.
-class ProcessingScreen extends StatefulWidget {
+class ProcessingScreen extends StatefulWidget implements TemporaryWebPage {
   const ProcessingScreen({super.key, required this.patientId, required this.indicators, required this.isNewPatient});
 
   final String patientId;
   final MaternalIndicators indicators;
   final bool isNewPatient;
+
+  @override
+  String get temporaryWebLocation => '/processing';
 
   @override
   State<ProcessingScreen> createState() => _ProcessingScreenState();

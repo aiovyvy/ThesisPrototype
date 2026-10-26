@@ -30,7 +30,7 @@ class AiovyApp extends StatefulWidget {
 }
 
 class _AiovyAppState extends State<AiovyApp> {
-  late final WebRouter? _webRouter = kIsWeb ? WebRouter() : null;
+  late final WebRouter? _webRouter = kIsWeb ? WebRouter(onClearSession: widget.repository.clearSession) : null;
 
   @override
   void dispose() {

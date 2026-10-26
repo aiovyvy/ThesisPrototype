@@ -9,9 +9,9 @@ import '../../core/utils/formatters.dart';
 import '../../models/assessment.dart';
 import '../../models/risk_level.dart';
 import '../../navigation/app_navigator.dart';
+import '../../navigation/route_session.dart';
 import '../../state/app_scope.dart';
 import '../../widgets/app_header.dart';
-import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
 import '../../widgets/dialogs.dart';
 import '../../widgets/explanation_widgets.dart';
@@ -27,10 +27,13 @@ import '../shap/shap_screen.dart';
 ///   asks before the result is discarded;
 /// * saved / historical result (opened from a patient's history) – read
 ///   only; the header back button returns to the record.
-class ResultScreen extends StatelessWidget {
+class ResultScreen extends StatelessWidget implements TemporaryWebPage {
   const ResultScreen({super.key, required this.assessment});
 
   final Assessment assessment;
+
+  @override
+  String get temporaryWebLocation => '/result';
 
   void _save(BuildContext context) {
     final scope = AppScope.of(context);
@@ -88,95 +91,108 @@ class ResultScreen extends StatelessWidget {
           },
           child: Scaffold(
             appBar: AppHeader(title: saved ? 'Saved result' : 'Risk result', showLogo: false),
-            bottomNavigationBar: saved
-                ? null
-                : _ResultActions(onSave: () => _save(context), onAssessAnother: () => _assessAnother(context)),
-            body: ListView(
-              padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.xl),
-              children: [
-                // 1. The verdict
-                // 2. Includes the high-risk alert, at the point of decision
-                _Verdict(
-                    assessment: assessment,
-                    saved: saved,
-                    showHighRiskAlert: level == RiskLevel.high && s.highRiskAlerts),
-                const SizedBox(height: 12),
-                // 3. Why: the main factors inline, the full chart one tap away
-                AppCard(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Semantics(
-                        header: true,
-                        child: Text('Main factors', style: AppTextStyles.labelLg),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        framing.summary(r.featureContributions),
-                        style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
-                      ),
-                      const SizedBox(height: 12),
-                      ContributionLegend(framing: framing),
-                      const SizedBox(height: 14),
-                      for (var i = 0; i < top.length; i++) ...[
-                        if (i > 0) const SizedBox(height: 14),
-                        ContributionBar(
-                          contribution: top[i],
-                          framing: framing,
-                          valueText: Fmt.indicator(top[i].indicator, assessment.indicators, s),
-                          maxAbs: scale,
-                          showDescription: false,
+            // The footer occupies its own measured space. The scroll viewport
+            // never extends underneath it, even when button text wraps.
+            body: Column(children: [
+              Expanded(
+                  child: ListView(
+                key: const ValueKey('result-scroll'),
+                padding: AppLayout.page(context, top: AppSpacing.md, bottom: saved ? AppSpacing.xl : AppSpacing.md),
+                children: [
+                  // 1. The verdict
+                  // 2. Includes the high-risk alert, at the point of decision
+                  _Verdict(
+                      assessment: assessment,
+                      saved: saved,
+                      showHighRiskAlert: level == RiskLevel.high && s.highRiskAlerts),
+                  const SizedBox(height: 12),
+                  // 3. Why: the main factors inline, the full chart one tap away
+                  AppCard(
+                    padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Semantics(
+                          header: true,
+                          child: Text('Main factors', style: AppTextStyles.labelLg),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          framing.summary(r.featureContributions),
+                          style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+                        ),
+                        const SizedBox(height: 12),
+                        ContributionLegend(framing: framing),
+                        const SizedBox(height: 14),
+                        for (var i = 0; i < top.length; i++) ...[
+                          if (i > 0) const SizedBox(height: 14),
+                          ContributionBar(
+                            contribution: top[i],
+                            framing: framing,
+                            valueText: Fmt.indicator(top[i].indicator, assessment.indicators, s),
+                            maxAbs: scale,
+                            showDescription: false,
+                          ),
+                        ],
+                        const SizedBox(height: 4),
+                        const Divider(height: 20),
+                        ExplanationButton(onPressed: openExplanation),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // 4. What was entered
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Semantics(
+                          header: true,
+                          child: Text('Entered values', style: AppTextStyles.labelLg),
+                        ),
+                        const SizedBox(height: 12),
+                        IndicatorGrid(indicators: assessment.indicators, settings: s),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  if (!saved) ...[
+                    TextButton(
+                      onPressed: () => _assessAnother(context),
+                      style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                      child: const Text('Discard and assess another patient', textAlign: TextAlign.center),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                  // 5. The decision-support notice, once, next to the save action
+                  Padding(
+                    key: const ValueKey('result-disclaimer'),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Icon(Icons.info_outline, size: 16, color: AppColors.outline),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            r.isDemo
+                                ? 'Simulated by the built-in demo classifier, not the trained model. '
+                                    '${AppStrings.decisionNotice}'
+                                : 'Estimated by ${r.modelName}. ${AppStrings.decisionNotice}',
+                            style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
+                          ),
                         ),
                       ],
-                      const SizedBox(height: 4),
-                      const Divider(height: 20),
-                      ExplanationButton(onPressed: openExplanation),
-                      const SizedBox(height: 12),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                // 4. What was entered
-                AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Semantics(
-                        header: true,
-                        child: Text('Entered values', style: AppTextStyles.labelLg),
-                      ),
-                      const SizedBox(height: 12),
-                      IndicatorGrid(indicators: assessment.indicators, settings: s),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                // 5. The decision-support notice, once, next to the save action
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(top: 2),
-                        child: Icon(Icons.info_outline, size: 16, color: AppColors.outline),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          r.isDemo
-                              ? 'Simulated by the built-in demo classifier, not the trained model. '
-                                  '${AppStrings.decisionNotice}'
-                              : 'Estimated by ${r.modelName}. ${AppStrings.decisionNotice}',
-                          style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                ],
+              )),
+              if (!saved) _ResultActions(onSave: () => _save(context))
+            ]),
           ),
         );
       },
@@ -186,28 +202,26 @@ class ResultScreen extends StatelessWidget {
 
 /// Sticky bottom actions for a new, unsaved result.
 class _ResultActions extends StatelessWidget {
-  const _ResultActions({required this.onSave, required this.onAssessAnother});
+  const _ResultActions({required this.onSave});
 
   final VoidCallback onSave;
-  final VoidCallback onAssessAnother;
 
   @override
   Widget build(BuildContext context) {
     return StickyActionBar(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          PrimaryButton(label: 'Save to patient record', leadingIcon: Icons.save_outlined, onPressed: onSave),
-          const SizedBox(height: 4),
-          Center(
-            child: LinkButton(
-              label: 'Discard and assess another patient',
-              color: AppColors.onSurfaceVariant,
-              onPressed: onAssessAnother,
-            ),
-          ),
-        ],
+      key: const ValueKey('result-actions'),
+      child: ElevatedButton(
+        onPressed: onSave,
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          minimumSize: const Size(double.infinity, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.onPrimary,
+          textStyle: AppTextStyles.labelLg.copyWith(fontSize: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md + 2)),
+        ),
+        child: const Text('Save to patient record', textAlign: TextAlign.center),
       ),
     );
   }

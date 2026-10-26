@@ -7,9 +7,11 @@ import 'package:aiovy/navigation/app_navigator.dart';
 import 'package:aiovy/navigation/main_shell.dart';
 import 'package:aiovy/navigation/web_router.dart';
 import 'package:aiovy/screens/login/login_screen.dart';
+import 'package:aiovy/screens/profile/doctor_profile_screen.dart';
 import 'package:aiovy/screens/research/research_demo_screen.dart';
 import 'package:aiovy/screens/settings/settings_screen.dart';
 import 'package:aiovy/services/mock_risk_classifier.dart';
+import 'package:aiovy/services/risk_classifier.dart';
 import 'package:aiovy/state/app_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,10 +37,12 @@ class HistoryRouteProvider extends RouteInformationProvider with ChangeNotifier 
   }
 }
 
-Widget routedApp(WebRouter router, PatientRepository repository, {RouteInformationProvider? provider}) => AppScope(
+Widget routedApp(WebRouter router, PatientRepository repository,
+        {RouteInformationProvider? provider, RiskClassifier? classifier}) =>
+    AppScope(
       repository: repository,
       settings: AppSettings(),
-      classifier: const MockRiskClassifier(),
+      classifier: classifier ?? const MockRiskClassifier(),
       clinician: MockClinician.demo,
       child: MaterialApp.router(
           theme: AppTheme.light(),
@@ -193,7 +197,8 @@ void main() {
         indicators: apiExampleIndicators,
         result: apiExampleResult,
         assessedBy: 'Synthetic tester'));
-    await tester.scrollUntilVisible(find.text('Sign Out'), 250);
+    await tester.scrollUntilVisible(find.text('Sign Out'), 250,
+        scrollable: find.descendant(of: find.byType(DoctorProfileScreen), matching: find.byType(Scrollable)).first);
     await tester.tap(find.text('Sign Out'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(TextButton, 'Sign Out'));

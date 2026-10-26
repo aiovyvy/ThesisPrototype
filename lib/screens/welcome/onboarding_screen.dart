@@ -6,6 +6,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../models/maternal_indicators.dart';
 import '../../models/risk_level.dart';
 import '../../navigation/app_navigator.dart';
+import '../../navigation/route_session.dart';
 import '../../widgets/aiovy_logo.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
@@ -18,8 +19,13 @@ import '../login/login_screen.dart';
 /// The illustrations are built from the app's own UI elements and carry no
 /// numbers, so nothing on these pages could be mistaken for patient data or
 /// model output.
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends StatefulWidget implements RestorableWebPage {
   const OnboardingScreen({super.key});
+
+  @override
+  String get restorableWebLocation => '/onboarding';
+  @override
+  bool get requiresDemoAccess => false;
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -52,7 +58,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _toSignIn() => Navigator.of(context).pushReplacement(AppNavigator.route(const LoginScreen()));
+  void _toSignIn() {
+    final session = RouteSession.maybeOf(context);
+    if (session != null) {
+      session.go('/login');
+    } else {
+      Navigator.of(context).pushReplacement(AppNavigator.route(const LoginScreen()));
+    }
+  }
 
   void _next() {
     if (_index == _content.length - 1) return _toSignIn();
@@ -80,7 +93,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       IconButton(
                         tooltip: 'Back',
                         icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-                        onPressed: () => Navigator.of(context).maybePop(),
+                        onPressed: () {
+                          final session = RouteSession.maybeOf(context);
+                          if (session != null) {
+                            session.go('/');
+                          } else {
+                            Navigator.of(context).maybePop();
+                          }
+                        },
                       ),
                       const Spacer(),
                       const AiovyLogoMark(size: 28),

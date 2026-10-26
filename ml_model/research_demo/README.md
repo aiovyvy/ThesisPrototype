@@ -96,21 +96,37 @@ restores that same example, and Back/Forward restores both selection and result.
 This does not require browser storage or a persistent demo session. The public
 page renders alone, without a private application shell or Settings page behind
 it, and does not depend on the patient repository or UCI classifier. Its Back
-button returns to Settings during an active in-memory demo session, or Intro
+button returns to Settings during an active DEMO-ONLY session, or Intro
 when there is no session. Mobile keeps its existing push/pop navigation and local
 example selection.
 
 Dashboard, Settings, Profile, Patients and the existing assessment/history flows
-remain private to the in-memory demo session. Refresh on a protected URL still
-requires sign-in before restoring that destination. Logout clears session-entered
-records and revokes demo access; browser history cannot restore protected screens
-or patient records afterward. The public research page remains available because
-it contains only the six fixed public examples, not patient/session records.
+remain behind the demo UI guard, not real authentication. A non-secret,
+tab-scoped `sessionStorage` demo-mode marker lets Dashboard, Settings, Profile,
+Patients and How AIOVY Works reopen on their own routes after refresh. Patients
+rebuilds from the existing synthetic seeds; session-entered records are lost.
+`/#/assessment` restores a blank new form with a draft/selection reset notice,
+not the previous measurements or patient association. `/#/patient-details`
+(including its embedded history) returns to Patients with a selection-unavailable
+explanation. `/#/processing`, `/#/result` and `/#/explanation` return to Dashboard
+with a lost-state explanation. No assessment or result is recreated or silently
+classified. Protected destinations require demo sign-in when the marker is absent.
+Logout clears session-entered records and the marker and revokes demo UI access;
+protected browser-history destinations remain gated afterward. The public research
+routes remain available because they contain only six fixed public examples,
+not patient/session records.
 
-No credentials, authentication flags, fake tokens, patient records or other
-sensitive state are stored in browser storage. Only allowlisted route names and
+Only `aiovy.demo-only-mode=enabled-v1` is stored in `sessionStorage`. This fixed
+mode marker is not a credential or API token and grants no backend permissions.
+No credentials, patient records or other sensitive state are stored. Only allowlisted route names and
 fixed example IDs are represented in URLs. The current demo login is not real
 authentication; production access control would require server-validated sessions.
+The marker has no timeout or cross-tab logout guarantee; duplicated/restored tabs
+may retain independent copies. If storage is blocked, demo access remains in
+memory only and refresh loses it. A failed storage clear during logout is reported
+on screen and must be resolved before continuing on a shared workstation.
+See [current demo-session behavior](../../docs/demo-browser-session.md), including
+storage failures, tab lifetime and manual browser checks.
 
 ## Responsive research view
 
@@ -307,6 +323,7 @@ flutter test --no-pub test/research_demo_test.dart --dart-define=RESEARCH_SCREEN
 These are Flutter widget renders, using the test helper's SDK font substitutions,
 not Chrome screenshots. **Live Chrome UI testing was unavailable**: the browser
 inventory was empty. Real browser refresh and history should still be checked
-manually with the direct public URL above. No browser session persistence was
-added. No model, dataset or artifact was modified, and nothing was retrained,
+manually with the direct public URL above. That earlier navigation update did not
+add browser session persistence; the later DEMO-ONLY marker is documented above.
+No model, dataset or artifact was modified, and nothing was retrained,
 committed, pushed, merged or deployed. Unrelated working-tree changes were preserved.

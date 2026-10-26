@@ -1,299 +1,177 @@
 import 'package:flutter/material.dart';
 
-import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../data/mock/mock_research.dart';
+import '../../data/research_overview.dart';
 import '../../models/research.dart';
+import '../../navigation/route_session.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/common.dart';
 
-/// Stitch: how_aiovy_works_research_dashboard. Visualises the thesis
-/// methodology. All metrics read "Pending Evaluation" until real results
-/// are entered in `MockResearch`.
-class ResearchScreen extends StatelessWidget {
+/// Describes the working prototype; does not run inference or access records.
+class ResearchScreen extends StatelessWidget implements RestorableWebPage {
   const ResearchScreen({super.key});
 
   @override
+  String get restorableWebLocation => '/how-aiovy-works';
+  @override
+  bool get requiresDemoAccess => true;
+
+  @override
   Widget build(BuildContext context) {
-    final data = MockResearch.build();
     return Scaffold(
       appBar: const AppHeader(title: 'How AIOVY Works', style: HeaderStyle.backCentered),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.xl),
-        children: [
-          const InfoNote(
-            text: 'Research Architecture · Model evaluation pending thesis experiments.',
-            icon: Icons.science_outlined,
-            circleIcon: false,
-            background: Color(0xFFEBDFE3),
-            foreground: AppColors.onSurface,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _HeroCard(),
-          const SizedBox(height: AppSpacing.lg),
-          SectionTitle(
-            'End-to-End Risk Classification Pipeline',
-            icon: Icons.account_tree_outlined,
-            trailing: Text('${data.pipeline.length} stages',
-                style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
-          ),
-          const SizedBox(height: 4),
-          Text('Sequential lifecycle bridging physiological intake to transparent clinical decision support.',
-              style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
-          const SizedBox(height: AppSpacing.md),
-          _Pipeline(stages: data.pipeline),
-          const SizedBox(height: AppSpacing.lg),
-          const SectionTitle('Model Comparison', icon: Icons.compare_arrows),
-          const SizedBox(height: AppSpacing.sm),
-          const InfoNote(
-            title: 'Methodological Note',
-            text: 'The deployed model is determined strictly through Repeated Stratified Cross-Validation '
-                'benchmarks. No model is pre-assumed to be superior prior to empirical validation.',
-            icon: Icons.rule,
-            circleIcon: false,
-            background: Color(0xFFF1ECEE),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          for (final m in data.models) ...[
-            _ModelCard(model: m),
-            const SizedBox(height: AppSpacing.md),
-          ],
-          _SelectedModelCard(selected: data.selectedModel),
-          const SizedBox(height: AppSpacing.lg),
-          const SectionTitle('Explainability', icon: Icons.insights),
-          const SizedBox(height: AppSpacing.sm),
-          AppCard(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1000),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('SHAP Feature Attribution', style: AppTextStyles.titleMd),
-                const SizedBox(height: 4),
+                const InfoNote(
+                  title: 'Research prototype',
+                  text: 'AIOVY is not a clinically approved diagnostic system. Use synthetic inputs for assessments '
+                      'and the fixed public research examples for demonstration only. Do not use outputs for clinical decisions.',
+                  icon: Icons.science_outlined,
+                  circleIcon: false,
+                  background: AppColors.brandTint,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                const _InformationCard(
+                  title: 'Two separate Random Forest workflows',
+                  text: 'The UCI assessment prototype and the experimental Research Demonstration use different saved '
+                      'models and independent APIs. Only Random Forest is integrated. Logistic Regression and '
+                      'XGBoost appear in offline research comparisons, not as selectable app classifiers.',
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                const SectionTitle('From measurements to explanation', icon: Icons.account_tree_outlined),
+                const SizedBox(height: AppSpacing.sm),
+                for (var i = 0; i < ResearchOverview.pipeline.length; i++) ...[
+                  _StageCard(stage: ResearchOverview.pipeline[i], number: i + 1),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                const SizedBox(height: AppSpacing.md),
+                const SectionTitle('What the saved evaluations show', icon: Icons.analytics_outlined),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Explains how each maternal indicator contributed to the model\'s risk classification.',
+                  'These scores measure agreement with supplied dataset labels, not clinically verified outcomes. '
+                  'Different datasets and test splits mean the scores do not establish that one model is better.',
                   style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant),
                 ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration:
-                      BoxDecoration(color: AppColors.surfaceLow, borderRadius: BorderRadius.circular(AppRadius.md)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(child: Text('Global Feature Importance', style: AppTextStyles.labelMd)),
-                          const Pill(text: 'Placeholder', background: AppColors.surfaceHigh),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainer,
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                        child: Text(
-                          'Pending Experimental Evaluation',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant),
-                        ),
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: AppSpacing.md),
+                for (final model in ResearchOverview.models) ...[
+                  _ModelCard(model: model),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                const _InformationCard(
+                  title: 'Reading the scores',
+                  text: 'Accuracy is the share of test records whose predicted category matches the dataset label. '
+                      'Macro F1 balances precision and recall, giving each category equal weight. '
+                      'High-risk recall is the share of high-risk-labelled test records predicted as high risk. '
+                      'None of these scores establishes clinical safety.',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.sm),
+                const _InformationCard(
+                  title: 'Why Random Forest?',
+                  text: 'The saved UCI comparison selected Random Forest by mean high-risk recall across repeated '
+                      'nested cross-validation, with macro F1 as a tie-break. The scores above come from the separate '
+                      'locked test, not those cross-validation folds. Selection under that rule does not mean '
+                      'Random Forest is best on every metric or clinically validated.',
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                const SectionTitle('Understanding SHAP', icon: Icons.insights_outlined),
+                const SizedBox(height: AppSpacing.sm),
+                const _InformationCard(
+                  title: 'What moved this model prediction?',
+                  text: 'SHAP assigns a contribution to each input for the predicted category. Positive contributions '
+                      'raise that category’s probability from the model’s baseline; negative contributions lower it. '
+                      'The baseline plus all six contributions reconstructs the predicted probability, checked by the APIs. '
+                      'A probability is a model output, not a verified chance of a medical outcome. '
+                      'SHAP explains model behavior, not medical causation. It does not show that changing a measurement '
+                      'will improve health or recommend treatment.',
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                const SectionTitle('Evidence and limitations', icon: Icons.menu_book_outlined),
+                const SizedBox(height: AppSpacing.sm),
                 const InfoNote(
-                  title: 'SHAP Explanation Stability',
-                  text: 'Stability will be evaluated across resampling / cross-validation folds.',
-                  icon: Icons.verified_outlined,
+                  title: 'Units and labels still need verification',
+                  text: 'The Hossain source uses conflicting glucose-unit labels. The research service provisionally '
+                      'treats values as mmol/L without converting glucose, and converts temperature from °F to °C. '
+                      'A corrected source dictionary and original unit history are missing. '
+                      'UCI label provenance is undocumented; Hossain label rules and expert adjudication are not '
+                      'fully reproducible locally. Neither model has established clinical validity.',
+                  icon: Icons.info_outline,
                   circleIcon: false,
                   background: AppColors.surfaceContainer,
                 ),
+                const SizedBox(height: AppSpacing.sm),
+                const _InformationCard(
+                  title: 'Sources behind this prototype',
+                  text: 'UCI Maternal Health Risk dataset; local final evaluation from notebook 03 '
+                      '(451 processed records). Hossain, M. M. (2025), Maternal health risk data, '
+                      'Mendeley Data V1, DOI: 10.17632/ckhgtgdg4f.1; supporting Hossain et al. publication '
+                      '(2026), DOI: 10.1186/s12911-026-03343-1; local evaluation from notebook 04. '
+                      'SHAP: Lundberg and Lee (2017), A Unified Approach to Interpreting Model Predictions. '
+                      'Full artifact paths, citations and source limitations are documented in the project README.',
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                const VersionFooter(),
               ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          const SectionTitle('References & Protocol', icon: Icons.menu_book_outlined),
-          const SizedBox(height: AppSpacing.sm),
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (var i = 0; i < data.references.length; i++) ...[
-                  Text(data.references[i].authors, style: AppTextStyles.labelLg),
-                  const SizedBox(height: 2),
-                  Text.rich(
-                    TextSpan(children: [
-                      TextSpan(text: '${data.references[i].title} '),
-                      TextSpan(text: data.references[i].venue, style: const TextStyle(fontStyle: FontStyle.italic)),
-                    ]),
-                    style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant, height: 1.45),
-                  ),
-                  const Divider(height: 28, color: AppColors.divider),
-                ],
-                _KeyValue(label: 'Protocol ID', value: data.protocolId, mono: true),
-                const SizedBox(height: 10),
-                _KeyValue(label: 'Validation Strategy', value: data.validationStrategy),
-                const SizedBox(height: 10),
-                const _KeyValue(label: 'Thesis', value: AppStrings.thesisTitle),
-              ],
-            ),
-          ),
-          // No bottom "Back" button: the header back / swipe-back returns to
-          // wherever Research was opened from (Profile or a result).
-          const SizedBox(height: AppSpacing.sm),
-          const VersionFooter(),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeroCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.description_outlined, size: 16, color: AppColors.primary),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text('CLINICAL THESIS & ALGORITHM SPEC',
-                    style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, letterSpacing: 0.8)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Semantics(
-            header: true,
-            child: Text('Maternal Health Risk Classification Architecture', style: AppTextStyles.headlineMd),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Comparative evaluation of Logistic Regression, Random Forest and XGBoost for maternal risk '
-            'classification, paired with Explainable AI (SHAP) feature attribution for transparent clinical '
-            'decision support.',
-            style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant, height: 1.45),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          const Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              Pill(text: '6 Clinical Indicators', dotColor: AppColors.primary),
-              Pill(text: '3 Risk Categories', dotColor: AppColors.secondary),
-              Pill(text: 'Explainable AI (SHAP)', dotColor: AppColors.tertiaryContainer),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Vertical stepper: one node per stage, connected by a line. The model
-/// training stage fans out into three parallel model chips.
-class _Pipeline extends StatelessWidget {
-  const _Pipeline({required this.stages});
-
-  final List<PipelineStage> stages;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          left: 21,
-          top: 30,
-          bottom: 30,
-          width: 2,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [AppColors.primaryFixedDim, AppColors.primary.withAlpha(140)],
-              ),
             ),
           ),
         ),
-        Column(
+      ),
+    );
+  }
+}
+
+class _InformationCard extends StatelessWidget {
+  const _InformationCard({required this.title, required this.text});
+
+  final String title;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => AppCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (var i = 0; i < stages.length; i++)
-              Padding(
-                padding: EdgeInsets.only(bottom: i == stages.length - 1 ? 0 : 10),
-                child: Semantics(
-                  label: 'Stage ${i + 1} of ${stages.length}: ${stages[i].title}. ${stages[i].description}'
-                      '${stages[i].branches.isEmpty ? '' : ' Models: ${stages[i].branches.join(', ')}.'}',
-                  excludeSemantics: true,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        margin: const EdgeInsets.only(top: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceLowest,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.primaryFixedDim, width: 2),
-                          boxShadow: AppShadows.sm,
-                        ),
-                        child: Icon(stages[i].icon, size: 20, color: AppColors.primary),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: AppCard(
-                          radius: AppRadius.md,
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text('${i + 1}', style: AppTextStyles.labelSm.copyWith(color: AppColors.primary)),
-                                  const SizedBox(width: 6),
-                                  Expanded(child: Text(stages[i].title, style: AppTextStyles.labelLg)),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(stages[i].description,
-                                  style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
-                              if (stages[i].branches.isNotEmpty) ...[
-                                const SizedBox(height: 10),
-                                Wrap(
-                                  spacing: 6,
-                                  runSpacing: 6,
-                                  children: [
-                                    for (final b in stages[i].branches)
-                                      Pill(
-                                        text: b,
-                                        background: AppColors.primaryFixed,
-                                        foreground: AppColors.onPrimaryFixedVariant,
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            Text(title, style: AppTextStyles.titleMd),
+            const SizedBox(height: AppSpacing.sm),
+            Text(text, style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant, height: 1.45)),
           ],
         ),
-      ],
-    );
-  }
+      );
+}
+
+class _StageCard extends StatelessWidget {
+  const _StageCard({required this.stage, required this.number});
+
+  final PipelineStage stage;
+  final int number;
+
+  @override
+  Widget build(BuildContext context) => AppCard(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(stage.icon, color: AppColors.primary),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('$number. ${stage.title}', style: AppTextStyles.labelLg),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(stage.description, style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 class _ModelCard extends StatelessWidget {
@@ -302,140 +180,45 @@ class _ModelCard extends StatelessWidget {
   final ModelInfo model;
 
   @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(model.name, style: AppTextStyles.titleMd),
-                    const SizedBox(height: 2),
-                    Text(model.subtitle, style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant)),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Pill(text: model.tag, background: AppColors.secondaryContainer, foreground: AppColors.onSurface),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(model.description, style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
-          const SizedBox(height: 12),
-          ResponsiveGrid(
-            columns: 3,
-            minItemWidth: 84,
-            spacing: 6,
-            children: [
-              for (final e in model.metrics.entries) _MetricTile(name: e.key, value: e.value),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MetricTile extends StatelessWidget {
-  const _MetricTile({required this.name, required this.value});
-
-  final String name;
-  final String? value;
-
-  @override
-  Widget build(BuildContext context) {
-    final pending = value == null;
-    return Semantics(
-      label: '$name: ${value ?? AppStrings.pendingEvaluation}',
-      excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-        decoration: BoxDecoration(color: AppColors.surfaceLow, borderRadius: BorderRadius.circular(AppRadius.sm)),
+  Widget build(BuildContext context) => AppCard(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(name, style: AppTextStyles.labelSm, textAlign: TextAlign.center),
-            const SizedBox(height: 4),
-            Text(
-              value ?? 'Pending\nEvaluation',
-              textAlign: TextAlign.center,
-              style: pending
-                  ? AppTextStyles.labelSm.copyWith(
-                      color: AppColors.onSurfaceVariant, fontStyle: FontStyle.italic, fontWeight: FontWeight.w500)
-                  : AppTextStyles.titleMd.copyWith(color: AppColors.primary),
+            Text(model.name, style: AppTextStyles.titleMd),
+            const SizedBox(height: AppSpacing.xs),
+            Text(model.subtitle, style: AppTextStyles.labelMd.copyWith(color: AppColors.primary)),
+            const SizedBox(height: AppSpacing.sm),
+            Text(model.description, style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
+            const SizedBox(height: AppSpacing.sm),
+            Text(model.evaluation, style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
+            const SizedBox(height: AppSpacing.md),
+            ResponsiveGrid(
+              columns: 3,
+              minItemWidth: 140,
+              spacing: AppSpacing.sm,
+              children: [
+                for (final metric in model.metrics.entries)
+                  Semantics(
+                    label: '${model.name}, ${metric.key}: ${metric.value}, agreement with dataset labels',
+                    excludeSemantics: true,
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceLow,
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(metric.key, style: AppTextStyles.labelSm, textAlign: TextAlign.center),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(metric.value, style: AppTextStyles.titleMd.copyWith(color: AppColors.primary)),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _SelectedModelCard extends StatelessWidget {
-  const _SelectedModelCard({required this.selected});
-
-  final String? selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.primaryFixedDim, width: 1.5),
-        color: AppColors.brandTint,
-      ),
-      child: Row(
-        children: [
-          const IconTile(icon: Icons.emoji_events_outlined, size: 44, circle: true, background: Colors.white),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('SELECTED MODEL', style: AppTextStyles.overline.copyWith(fontSize: 11)),
-                const SizedBox(height: 2),
-                Text(selected ?? AppStrings.pendingEvaluation,
-                    style: AppTextStyles.titleMd
-                        .copyWith(color: selected == null ? AppColors.onSurfaceVariant : AppColors.primary)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _KeyValue extends StatelessWidget {
-  const _KeyValue({required this.label, required this.value, this.mono = false});
-
-  final String label;
-  final String value;
-  final bool mono;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 110,
-          child: Text(label, style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: mono
-                ? AppTextStyles.labelMd.copyWith(fontFamily: 'monospace', fontWeight: FontWeight.w600)
-                : AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
-    );
-  }
+      );
 }

@@ -65,11 +65,27 @@ class AppNavigator {
   static final ValueNotifier<ShellTab> currentTab = ValueNotifier<ShellTab>(ShellTab.home);
 
   /// Default (hierarchical) route.
-  static Route<T> route<T>(Widget page) => AiovySlideRoute<T>(builder: (_) => page);
+  static RouteSettings _settings(Widget page) => RouteSettings(
+          name: switch (page) {
+        TemporaryWebPage page => page.temporaryWebLocation,
+        RestorableWebPage page => page.restorableWebLocation,
+        _ => null,
+      });
 
-  static Route<T> fadeRoute<T>(Widget page, {bool rise = false}) => AiovyFadeRoute<T>(page: page, rise: rise);
+  static Route<T> route<T>(Widget page) => AiovySlideRoute<T>(builder: (_) => page, settings: _settings(page));
 
-  static Future<T?> push<T>(BuildContext context, Widget page) => Navigator.of(context).push<T>(route<T>(page));
+  static Route<T> fadeRoute<T>(Widget page, {bool rise = false}) =>
+      AiovyFadeRoute<T>(page: page, rise: rise, settings: _settings(page));
+
+  static bool _mayOpen(BuildContext context, Widget page) {
+    if (!context.mounted) return false;
+    final guarded =
+        page is TemporaryWebPage || (page is RestorableWebPage && (page as RestorableWebPage).requiresDemoAccess);
+    return !guarded || (RouteSession.maybeOf(context)?.hasDemoAccess?.call() ?? true);
+  }
+
+  static Future<T?> push<T>(BuildContext context, Widget page) =>
+      _mayOpen(context, page) ? Navigator.of(context).push<T>(route<T>(page)) : Future<T?>.value();
 
   static Future<T?> pushLocation<T>(BuildContext context, String location, Widget page) {
     final session = RouteSession.maybeOf(context);
@@ -96,11 +112,13 @@ class AppNavigator {
     }
   }
 
-  static Future<T?> pushFade<T>(BuildContext context, Widget page) => Navigator.of(context).push<T>(fadeRoute<T>(page));
+  static Future<T?> pushFade<T>(BuildContext context, Widget page) =>
+      _mayOpen(context, page) ? Navigator.of(context).push<T>(fadeRoute<T>(page)) : Future<T?>.value();
 
   /// Replaces the current screen with a fade (non-hierarchical change).
-  static Future<T?> replace<T>(BuildContext context, Widget page, {bool rise = false}) =>
-      Navigator.of(context).pushReplacement<T, Object?>(fadeRoute<T>(page, rise: rise));
+  static Future<T?> replace<T>(BuildContext context, Widget page, {bool rise = false}) => _mayOpen(context, page)
+      ? Navigator.of(context).pushReplacement<T, Object?>(fadeRoute<T>(page, rise: rise))
+      : Future<T?>.value();
 
   /// Clears the whole stack (used for login → shell and sign-out).
   static Future<T?> resetTo<T>(BuildContext context, Widget page) =>
