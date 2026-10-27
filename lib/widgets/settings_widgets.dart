@@ -53,48 +53,51 @@ class SettingsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stacked = trailing != null && MediaQuery.textScalerOf(context).scale(1) > 1.3;
-    return InkWell(
-      onTap: onTap,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 64),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Row(children: [
-              IconTile(
-                icon: icon,
-                size: 40,
-                iconSize: 20,
-                background: iconBackground,
-                foreground: AppColors.primary,
-                radius: 12,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(title, style: titleStyle ?? AppTextStyles.titleMd.copyWith(fontSize: 16)),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(subtitle!, style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
-                    ],
-                  ],
+    return LayoutBuilder(builder: (context, constraints) {
+      final stacked =
+          trailing != null && (constraints.maxWidth < 320 || MediaQuery.textScalerOf(context).scale(1) > 1.3);
+      return InkWell(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 64),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Row(children: [
+                IconTile(
+                  icon: icon,
+                  size: 40,
+                  iconSize: 20,
+                  background: iconBackground,
+                  foreground: AppColors.primary,
+                  radius: 12,
                 ),
-              ),
-              if (trailing != null && !stacked) ...[const SizedBox(width: 8), trailing!],
-              if (showChevron) ...[
-                const SizedBox(width: 4),
-                const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
-              ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(title, style: titleStyle ?? AppTextStyles.titleMd.copyWith(fontSize: 16)),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(subtitle!, style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
+                      ],
+                    ],
+                  ),
+                ),
+                if (trailing != null && !stacked) ...[const SizedBox(width: 8), trailing!],
+                if (showChevron) ...[
+                  const SizedBox(width: 4),
+                  const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
+                ],
+              ]),
+              if (stacked) ...[const SizedBox(height: 8), Align(alignment: Alignment.centerLeft, child: trailing!)],
             ]),
-            if (stacked) ...[const SizedBox(height: 8), Align(alignment: Alignment.centerLeft, child: trailing!)],
-          ]),
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }
 

@@ -364,26 +364,32 @@ class _PatientStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Semantics(
-                header: true,
-                child: Text('Patient $patientId', style: AppTextStyles.headlineSm),
-              ),
-              Text(
-                isNew ? 'New record' : 'Existing record',
-                style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
-              ),
-            ],
+    return LayoutBuilder(builder: (context, constraints) {
+      final identity = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Semantics(
+            header: true,
+            child: Text('Patient $patientId', style: AppTextStyles.headlineSm),
           ),
-        ),
-        if (action != null) action!,
-      ],
-    );
+          Text(
+            isNew ? 'New record' : 'Existing record',
+            style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+          ),
+        ],
+      );
+      final stacked = constraints.maxWidth < 320 || MediaQuery.textScalerOf(context).scale(1) > 1.3;
+      if (stacked) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            identity,
+            if (action != null) ...[const SizedBox(height: AppSpacing.sm), action!]
+          ],
+        );
+      }
+      return Row(children: [Expanded(child: identity), if (action != null) action!]);
+    });
   }
 }
 

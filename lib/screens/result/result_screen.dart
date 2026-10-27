@@ -233,100 +233,109 @@ class _Verdict extends StatelessWidget {
     final r = assessment.result;
     final level = r.riskLevel;
     final p = r.probabilities[level] ?? 0;
+    // Leave room for the enlarged risk word on the narrowest phones without
+    // reducing the user's text size. Keep the usual inset elsewhere.
+    final compactInset = MediaQuery.sizeOf(context).width < 360 && MediaQuery.textScalerOf(context).scale(1) > 1.3;
     return Container(
       decoration: BoxDecoration(
         color: level.tint,
         borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(color: level.color.withAlpha(70)),
       ),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
+      padding: EdgeInsets.symmetric(horizontal: compactInset ? AppSpacing.sm : AppSpacing.md, vertical: AppSpacing.md),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final stacked = constraints.maxWidth < 320 || MediaQuery.textScalerOf(context).scale(1) > 1.3;
+        final identity = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Patient ${assessment.patientId}', style: AppTextStyles.labelLg),
+            Text(Fmt.relative(assessment.timestamp),
+                style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.onSurfaceVariant)),
+          ],
+        );
+        final status = Pill(
+          text: saved ? 'Saved' : 'Not saved',
+          icon: saved ? Icons.check : Icons.edit_note,
+          background: AppColors.surfaceLowest,
+          foreground: saved ? AppColors.riskLow : AppColors.onSurfaceVariant,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        );
+        final riskHeading = Text(level.label, style: AppTextStyles.headlineLg.copyWith(color: level.textColor));
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (stacked)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [identity, const SizedBox(height: AppSpacing.sm), status],
+              )
+            else
+              Row(children: [Expanded(child: identity), const SizedBox(width: 8), status]),
+            const SizedBox(height: 18),
+            Text(r.isDemo ? 'SIMULATED ESTIMATE' : 'MODEL ESTIMATE', style: AppTextStyles.overline),
+            const SizedBox(height: 2),
+            Semantics(
+              header: true,
+              label:
+                  '${r.isDemo ? 'Simulated estimate' : 'Model estimate'}: ${level.label}, ${Fmt.percent(p)} probability.',
+              excludeSemantics: true,
+              child: stacked
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(level.icon, size: 30, color: level.color),
+                        const SizedBox(height: AppSpacing.sm),
+                        riskHeading,
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Icon(level.icon, size: 30, color: level.color),
+                        const SizedBox(width: 10),
+                        Expanded(child: riskHeading),
+                      ],
+                    ),
+            ),
+            const SizedBox(height: 16),
+            ProbabilityBars(result: r, trackColor: AppColors.surfaceLowest),
+            if (r.isDemo) ...[const SizedBox(height: 12), const _DemoTag()],
+            if (showHighRiskAlert) ...[
+              Divider(height: 28, color: level.color.withAlpha(50)),
+              Semantics(
+                liveRegion: true,
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Patient ${assessment.patientId}', style: AppTextStyles.labelLg),
-                    Text(
-                      Fmt.relative(assessment.timestamp),
-                      style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(
-                            color: AppColors.onSurfaceVariant,
-                          ),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 1),
+                      child: Icon(Icons.notification_important_outlined, size: 20, color: AppColors.riskHigh),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(text: 'High-risk classification. ', style: AppTextStyles.labelLg),
+                            const TextSpan(text: 'Prompt review by the attending obstetric team is recommended.'),
+                          ],
+                        ),
+                        style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurface),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Pill(
-                text: saved ? 'Saved' : 'Not saved',
-                icon: saved ? Icons.check : Icons.edit_note,
-                background: AppColors.surfaceLowest,
-                foreground: saved ? AppColors.riskLow : AppColors.onSurfaceVariant,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            ],
+            if (saved) ...[
+              const SizedBox(height: 6),
+              Text(
+                '${assessment.type} · ${assessment.assessedBy}',
+                style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.onSurfaceVariant),
               ),
             ],
-          ),
-          const SizedBox(height: 18),
-          Text(r.isDemo ? 'SIMULATED ESTIMATE' : 'MODEL ESTIMATE', style: AppTextStyles.overline),
-          const SizedBox(height: 2),
-          Semantics(
-            header: true,
-            label:
-                '${r.isDemo ? 'Simulated estimate' : 'Model estimate'}: ${level.label}, ${Fmt.percent(p)} probability.',
-            excludeSemantics: true,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Icon(level.icon, size: 30, color: level.color),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(level.label, style: AppTextStyles.headlineLg.copyWith(color: level.textColor)),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          ProbabilityBars(result: r, trackColor: AppColors.surfaceLowest),
-          if (r.isDemo) ...[const SizedBox(height: 12), const _DemoTag()],
-          if (showHighRiskAlert) ...[
-            Divider(height: 28, color: level.color.withAlpha(50)),
-            Semantics(
-              liveRegion: true,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(top: 1),
-                    child: Icon(Icons.notification_important_outlined, size: 20, color: AppColors.riskHigh),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(text: 'High-risk classification. ', style: AppTextStyles.labelLg),
-                          const TextSpan(text: 'Prompt review by the attending obstetric team is recommended.'),
-                        ],
-                      ),
-                      style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurface),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
-          if (saved) ...[
-            const SizedBox(height: 6),
-            Text(
-              '${assessment.type} · ${assessment.assessedBy}',
-              style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.onSurfaceVariant),
-            ),
-          ],
-        ],
-      ),
+        );
+      }),
     );
   }
 }

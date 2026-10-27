@@ -163,6 +163,11 @@ class _StatusCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Semantics(
+            header: true,
+            child: Text('Patient ${patient.id}', style: AppTextStyles.titleMd),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             // Say which kind of estimate this is, in every mode.
             [
