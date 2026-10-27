@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:aiovy/core/constants/app_strings.dart';
 import 'package:aiovy/data/repositories/patient_repository.dart';
 import 'package:aiovy/models/assessment.dart';
-import 'package:aiovy/models/maternal_indicators.dart';
 import 'package:aiovy/models/risk_result.dart';
 import 'package:aiovy/screens/assessment/assessment_input_screen.dart';
 import 'package:aiovy/screens/home/home_screen.dart';
@@ -161,21 +160,26 @@ void main() {
         final semantics = tester.ensureSemantics();
         try {
           var calls = 0;
-          final transport = MockClient((_) async {
-            calls++;
-            return http.Response('Unavailable', 503);
+          final responses = [Completer<http.Response>(), Completer<http.Response>()];
+          final demo = ControlledClassifier(isDemo: true);
+          final transport = MockClient((_) {
+            return responses[calls++].future;
           });
           addTearDown(transport.close);
           final RiskClassifier classifier = api
               ? ApiRiskClassifier(baseUrl: Uri.parse('http://uci.test'), client: transport, requireHttps: false)
-              : _FailingDemo();
+              : demo;
           await tester.pumpWidget(testApp(
               const ProcessingScreen(patientId: 'synthetic', indicators: apiExampleIndicators, isNewPatient: true),
               classifier: classifier));
           await tester.pump(const Duration(milliseconds: 100));
           checkNotice(tester);
           await revealNotice(tester);
-          await tester.pump(const Duration(seconds: 3));
+          if (api) {
+            responses.first.complete(http.Response('Unavailable', 503));
+          } else {
+            demo.requests.first.completeError(const RiskClassifierException('Synthetic test failure'));
+          }
           await tester.pumpAndSettle();
           checkNotice(tester);
           await revealNotice(tester);
@@ -183,7 +187,12 @@ void main() {
           expect(find.byType(ResultScreen), findsNothing);
           await tester.tap(find.text('Try again'));
           await tester.pump();
-          await tester.pump(const Duration(seconds: 3));
+          checkNotice(tester);
+          if (api) {
+            responses.last.complete(http.Response('Unavailable', 503));
+          } else {
+            demo.requests.last.completeError(const RiskClassifierException('Synthetic test failure'));
+          }
           await tester.pumpAndSettle();
           checkNotice(tester);
           if (api) expect(calls, 2);
@@ -228,14 +237,4 @@ void main() {
       });
     }
   }
-}
-
-class _FailingDemo implements RiskClassifier {
-  @override
-  bool get isDemo => true;
-  @override
-  String get modelName => 'Simulated classifier';
-  @override
-  Future<RiskResult> classify(MaternalIndicators indicators) async =>
-      throw const RiskClassifierException('Synthetic test failure');
 }

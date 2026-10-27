@@ -103,7 +103,7 @@ void main() {
       setScreen(tester, const Size(360, 780));
       final repo = PatientRepository();
       final id = repo.nextPatientId();
-      final classifier = FakeApiClassifier();
+      final classifier = ControlledClassifier();
       await tester.pumpWidget(testApp(const AssessmentInputScreen(), repository: repo, classifier: classifier));
 
       for (final (i, v) in const [(0, '32'), (1, '142'), (2, '92'), (3, '5.6'), (4, '98.4'), (5, '82')]) {
@@ -116,10 +116,10 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50)); // first frame of a push is offstage
       expect(find.byType(ProcessingScreen), findsOneWidget);
-      await tester.pump(const Duration(seconds: 3));
+      classifier.requests.single.complete(apiExampleResult);
       await tester.pumpAndSettle();
 
-      expect(classifier.calls, 1);
+      expect(classifier.requests, hasLength(1));
       expect(find.byType(ResultScreen), findsOneWidget);
       expect(find.text('High Risk'), findsOneWidget);
       expect(find.text('Supports High Risk'), findsOneWidget);
@@ -135,37 +135,40 @@ void main() {
 
   testWidgets('a classifier failure shows the reason and can be retried', (tester) async {
     setScreen(tester, const Size(360, 780));
-    final classifier = FakeApiClassifier(errors: [const RiskClassifierException('Could not reach the server.')]);
+    final classifier = ControlledClassifier();
     await tester.pumpWidget(
       testApp(
         const ProcessingScreen(patientId: 'P-0099', indicators: apiExampleIndicators, isNewPatient: true),
         classifier: classifier,
       ),
     );
-    await tester.pump(const Duration(seconds: 3));
+    classifier.requests.single.completeError(const RiskClassifierException('Could not reach the server.'));
+    await tester.pumpAndSettle();
     expect(find.text("Couldn't get a risk result"), findsOneWidget);
     expect(find.text('Could not reach the server.'), findsOneWidget);
     expect(find.text('Edit values'), findsOneWidget);
 
     await tester.tap(find.text('Try again'));
-    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
+    expect(classifier.requests, hasLength(2));
+    classifier.requests.last.complete(apiExampleResult);
     await tester.pumpAndSettle();
-    expect(classifier.calls, 2);
     expect(find.byType(ResultScreen), findsOneWidget);
   });
 
   testWidgets('processing only claims "demo classifier" for the demo', (tester) async {
     setScreen(tester, const Size(360, 780));
+    final classifier = ControlledClassifier();
     await tester.pumpWidget(
       testApp(
         const ProcessingScreen(patientId: 'P-0099', indicators: apiExampleIndicators, isNewPatient: true),
-        classifier: FakeApiClassifier(),
+        classifier: classifier,
       ),
     );
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.textContaining('Demo classifier'), findsNothing);
     expect(find.text('Model: Random Forest (UCI)'), findsOneWidget);
-    await tester.pump(const Duration(seconds: 3));
+    classifier.requests.single.complete(apiExampleResult);
     await tester.pumpAndSettle();
   });
 

@@ -54,6 +54,7 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
   late bool _isNewPatient;
   DateTime? _prefilledFrom;
   bool _submitted = false;
+  bool _submitting = false;
   bool _initialised = false;
   GlucoseUnit? _glucoseUnit;
   TempUnit? _tempUnit;
@@ -155,7 +156,8 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
     if (discard && mounted) Navigator.of(context).pop();
   }
 
-  void _submit(AppSettings s) {
+  Future<void> _submit(AppSettings s) async {
+    if (_submitting) return;
     FocusScope.of(context).unfocus();
     final invalid = Indicator.values.where((i) => _status(i, s) != FieldStatus.valid).toList();
     if (invalid.isNotEmpty) {
@@ -177,10 +179,15 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
       heartRate: v(Indicator.heartRate).round(),
     );
 
-    AppNavigator.pushFade(
-      context,
-      ProcessingScreen(patientId: _patientId, indicators: indicators, isNewPatient: _isNewPatient),
-    );
+    _submitting = true;
+    try {
+      await AppNavigator.pushFade(
+        context,
+        ProcessingScreen(patientId: _patientId, indicators: indicators, isNewPatient: _isNewPatient),
+      );
+    } finally {
+      _submitting = false;
+    }
   }
 
   /// Converts already-typed values if the unit setting changed meanwhile.

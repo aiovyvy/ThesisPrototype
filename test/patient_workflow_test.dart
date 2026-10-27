@@ -38,8 +38,6 @@ Future<void> enterValues(WidgetTester tester, Map<String, dynamic> values) async
 Future<void> finishClassification(WidgetTester tester) async {
   await tester.tap(find.text('Assess risk'));
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 100));
-  await tester.pump(const Duration(seconds: 3));
   await tester.pumpAndSettle();
 }
 
@@ -370,7 +368,6 @@ void main() {
       } else {
         await tester.tap(find.text('Try again'));
         await tester.pump();
-        await tester.pump(const Duration(seconds: 3));
         await tester.pumpAndSettle();
       }
       expect(calls, 2);

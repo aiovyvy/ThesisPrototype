@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -154,5 +155,23 @@ class FakeApiClassifier implements RiskClassifier {
     calls++;
     if (_errors.isNotEmpty) throw _errors.removeAt(0);
     return _result;
+  }
+}
+
+/// The test decides precisely when each request succeeds or fails.
+class ControlledClassifier implements RiskClassifier {
+  ControlledClassifier({this.isDemo = false});
+  @override
+  final bool isDemo;
+  @override
+  String get modelName => isDemo ? 'Simulated classifier' : 'Random Forest (UCI)';
+  final requests = <Completer<RiskResult>>[];
+  final inputs = <MaternalIndicators>[];
+  @override
+  Future<RiskResult> classify(MaternalIndicators indicators) {
+    inputs.add(indicators);
+    final request = Completer<RiskResult>();
+    requests.add(request);
+    return request.future;
   }
 }
