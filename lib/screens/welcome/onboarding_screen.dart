@@ -13,19 +13,22 @@ import '../../widgets/common.dart';
 import '../assessment/indicator_input_card.dart';
 import '../login/login_screen.dart';
 
-/// Three short pages (what it does, how it explains, what it is not), then
-/// sign-in. "Skip" goes straight to sign-in from any page.
+/// Three task-oriented pages, shared by Welcome and Settings replay.
+/// Welcome exits to sign-in; replay returns to Settings without changing access.
 ///
 /// The illustrations are built from the app's own UI elements and carry no
 /// numbers, so nothing on these pages could be mistaken for patient data or
 /// model output.
 class OnboardingScreen extends StatefulWidget implements RestorableWebPage {
-  const OnboardingScreen({super.key});
+  const OnboardingScreen({super.key, this.replay = false});
+
+  /// Presentation context only; never persisted or used to grant demo access.
+  final bool replay;
 
   @override
   String get restorableWebLocation => '/onboarding';
   @override
-  bool get requiresDemoAccess => false;
+  bool get requiresDemoAccess => replay;
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -37,19 +40,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const _content = [
     (
-      'Six routine measurements',
-      "Enter age, blood pressure, blood glucose, body temperature and the mother's heart rate "
-          'to get a low, moderate or high risk estimate.',
+      'Start a synthetic assessment',
+      'From Home, choose New assessment. Use sample values or enter six synthetic indicators. '
+          'Check the units beside each field. Do not enter real patient information.',
     ),
     (
-      'See what drove each estimate',
-      'In API mode, SHAP shows which inputs supported or opposed the model estimate. '
-          'Simulated mode shows heuristic demo scores, not real SHAP. Neither explains medical causes.',
+      'Understand the output',
+      'Review the Low, Moderate and High model scores, then open Explanation. '
+          'API mode uses SHAP; simulated mode uses heuristic demo contributions, not real SHAP. '
+          'Model scores are not clinical probabilities or diagnoses. '
+          'Contributions explain model behavior, not medical causes.',
     ),
     (
-      'Support, not a substitute',
-      'AIOVY assists midwives, OB-GYNs and care teams. It does not replace clinical judgment: '
-          'the decision stays with you.',
+      'Save and revisit',
+      'Choose Save to session history. Open Patients, select the demo ID and read its history. '
+          'Entered records are temporary and clear on logout, browser refresh or app restart. '
+          'Research Demonstration is a separate workflow of fixed examples.',
     ),
   ];
 
@@ -59,17 +65,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _toSignIn() {
+  void _finish() {
     final session = RouteSession.maybeOf(context);
-    if (session != null) {
+    if (widget.replay) {
+      // Logout may have removed the originating route during its transition.
+      if (ModalRoute.of(context)?.isCurrent != true || session?.hasDemoAccess?.call() == false) return;
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      } else {
+        // A browser refresh loses the imperative stack, but not the demo
+        // marker. This public tutorial contains no record-specific state.
+        session?.go('/settings');
+      }
+    } else if (session != null) {
       session.go('/login');
     } else {
       Navigator.of(context).pushReplacement(AppNavigator.route(const LoginScreen()));
     }
   }
 
+  void _back() {
+    if (widget.replay) return _finish();
+    final session = RouteSession.maybeOf(context);
+    if (session != null) {
+      session.go('/');
+    } else {
+      Navigator.of(context).maybePop();
+    }
+  }
+
   void _next() {
-    if (_index == _content.length - 1) return _toSignIn();
+    if (_index == _content.length - 1) return _finish();
     _pages.nextPage(
       duration: MediaQuery.disableAnimationsOf(context) ? const Duration(milliseconds: 1) : AppMotion.push,
       curve: Curves.easeOutCubic,
@@ -94,19 +120,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       IconButton(
                         tooltip: 'Back',
                         icon: const Icon(Icons.arrow_back, color: AppColors.onSurface),
-                        onPressed: () {
-                          final session = RouteSession.maybeOf(context);
-                          if (session != null) {
-                            session.go('/');
-                          } else {
-                            Navigator.of(context).maybePop();
-                          }
-                        },
+                        onPressed: _back,
                       ),
                       const Spacer(),
                       const AiovyLogoMark(size: 28),
                       const Spacer(),
-                      LinkButton(label: 'Skip', color: AppColors.onSurfaceVariant, onPressed: _toSignIn),
+                      LinkButton(label: 'Skip', color: AppColors.onSurfaceVariant, onPressed: _finish),
                     ],
                   ),
                 ),
@@ -119,7 +138,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       art: switch (i) {
                         0 => const _MeasurementsArt(),
                         1 => const _ExplainArt(),
-                        _ => const _SupportArt(),
+                        _ => const _HistoryArt(),
                       },
                       title: _content[i].$1,
                       body: _content[i].$2,
@@ -134,7 +153,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       _Dots(count: _content.length, index: _index),
                       const SizedBox(height: AppSpacing.md),
                       PrimaryButton(
-                        label: last ? 'Continue to sign in' : 'Next',
+                        label: last ? (widget.replay ? 'Done' : 'Continue to sign in') : 'Next',
                         trailingIcon: Icons.arrow_forward,
                         onPressed: _next,
                       ),
@@ -168,8 +187,10 @@ class _Page extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ExcludeSemantics(child: Center(child: art)),
-              const SizedBox(height: AppSpacing.xl),
+              if (MediaQuery.textScalerOf(context).scale(1) <= 1.3) ...[
+                ExcludeSemantics(child: Center(child: art)),
+                const SizedBox(height: AppSpacing.xl),
+              ],
               Semantics(
                 header: true,
                 child: Text(title, style: AppTextStyles.headlineMd),
@@ -356,9 +377,9 @@ class _ExplainArt extends StatelessWidget {
   }
 }
 
-/// The estimate informs; the clinician decides.
-class _SupportArt extends StatelessWidget {
-  const _SupportArt();
+/// A task illustration only: save, then revisit through Patients.
+class _HistoryArt extends StatelessWidget {
+  const _HistoryArt();
 
   @override
   Widget build(BuildContext context) {
@@ -386,12 +407,12 @@ class _SupportArt extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          step(Icons.insights, 'Model estimate'),
+          step(Icons.save_outlined, 'Save to session history'),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 6),
             child: Icon(Icons.arrow_downward, size: 18, color: AppColors.outline),
           ),
-          step(Icons.person_outline, 'Your clinical judgment', emphasis: true),
+          step(Icons.history, 'Patients > Demo ID > History', emphasis: true),
         ],
       ),
     );

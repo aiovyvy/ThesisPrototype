@@ -223,8 +223,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Next'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('heuristic demo scores, not real SHAP'), findsOneWidget);
-    expect(find.textContaining('Neither explains medical causes'), findsOneWidget);
+    expect(find.textContaining('heuristic demo contributions, not real SHAP'), findsOneWidget);
+    expect(find.textContaining('Contributions explain model behavior, not medical causes'), findsOneWidget);
     expect(find.text('Skip'), findsOneWidget);
     expect(find.byType(OnboardingScreen), findsOneWidget);
   });

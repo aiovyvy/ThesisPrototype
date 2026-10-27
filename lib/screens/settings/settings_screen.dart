@@ -13,6 +13,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/common.dart';
 import '../../widgets/settings_widgets.dart';
 import '../research/research_demo_screen.dart';
+import '../welcome/onboarding_screen.dart';
 
 /// Stitch: settings. All controls are functional (in-memory only).
 class SettingsScreen extends StatelessWidget {
@@ -179,6 +180,13 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             const SectionLabel('About'),
             SettingsGroup(children: [
+              SettingsRow(
+                icon: Icons.help_outline,
+                title: 'Replay Tutorial',
+                subtitle: 'Assessment, explanation and session history',
+                showChevron: true,
+                onTap: () => AppNavigator.push(context, const OnboardingScreen(replay: true)),
+              ),
               SettingsRow(
                 icon: Icons.medical_services_outlined,
                 title: 'About AIOVY',

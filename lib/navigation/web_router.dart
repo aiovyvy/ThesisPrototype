@@ -277,7 +277,7 @@ class WebRouter extends RouterDelegate<String> with ChangeNotifier, PopNavigator
                     name: _location,
                     child: switch (_location) {
                       '/' => const WelcomeScreen(),
-                      '/onboarding' => const OnboardingScreen(),
+                      '/onboarding' => OnboardingScreen(replay: _signedIn),
                       _ => const LoginScreen(),
                     })
               else ...[

@@ -63,15 +63,15 @@ void main() {
       await tester.tap(find.text('Get started'));
       await tester.pumpAndSettle();
       expect(find.byType(OnboardingScreen), findsOneWidget);
-      expect(find.text('Six routine measurements'), findsOneWidget);
+      expect(find.text('Start a synthetic assessment'), findsOneWidget);
       expect(find.bySemanticsLabel('Page 1 of 3'), findsOneWidget);
 
       await tester.tap(find.text('Next'));
       await tester.pumpAndSettle();
-      expect(find.text('See what drove each estimate'), findsOneWidget);
+      expect(find.text('Understand the output'), findsOneWidget);
       await tester.tap(find.text('Next'));
       await tester.pumpAndSettle();
-      expect(find.text('Support, not a substitute'), findsOneWidget);
+      expect(find.text('Save and revisit'), findsOneWidget);
 
       await tester.tap(find.text('Continue to sign in'));
       await tester.pumpAndSettle();
