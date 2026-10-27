@@ -65,6 +65,7 @@ class PatientListRow extends StatelessWidget {
 
     return Semantics(
       button: true,
+      onTap: onTap,
       label: 'Patient ${patient.id}, ${patient.age} years, ${level?.label ?? 'not yet assessed'}'
           '${simulated ? ' (simulated)' : ''}'
           '${m != null ? ', blood pressure ${m.systolic} over ${m.diastolic}, heart rate ${m.heartRate}' : ''}'
@@ -76,45 +77,37 @@ class PatientListRow extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 60),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(AppSpacing.md, 10, 8, 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          // The full ID is never truncated.
-                          Text(patient.id, style: AppTextStyles.labelLg),
-                          if (latest != null) ...[
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                Fmt.relative(latest.timestamp, withTime: false),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(
-                                      color: AppColors.outline,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        meta,
-                        style: AppTextStyles.bodySm.tabular.copyWith(color: AppColors.onSurfaceVariant),
-                      ),
-                      if (simulated) ...[const SizedBox(height: 2), const SimulatedTag()],
-                    ],
-                  ),
-                ),
+            child: LayoutBuilder(builder: (context, bounds) {
+              final stacked = bounds.maxWidth < 300 || MediaQuery.textScalerOf(context).scale(1) > 1.3;
+              final details = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Wrap(spacing: 8, runSpacing: 2, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                  Text(patient.id, style: AppTextStyles.labelLg),
+                  if (latest != null)
+                    Text(Fmt.relative(latest.timestamp, withTime: false),
+                        style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline)),
+                ]),
+                const SizedBox(height: 2),
+                Text(meta, style: AppTextStyles.bodySm.tabular.copyWith(color: AppColors.onSurfaceVariant)),
+                if (simulated) ...[const SizedBox(height: 2), const SimulatedTag()],
+              ]);
+              if (stacked) {
+                return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  details,
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    if (level != null) RiskBadge(level: level),
+                    const Spacer(),
+                    const Icon(Icons.chevron_right, size: 22, color: AppColors.outline),
+                  ]),
+                ]);
+              }
+              return Row(children: [
+                Expanded(child: details),
                 const SizedBox(width: 8),
                 if (level != null) RiskBadge(level: level, short: true),
                 const Icon(Icons.chevron_right, size: 22, color: AppColors.outline),
-              ],
-            ),
+              ]);
+            }),
           ),
         ),
       ),
@@ -137,6 +130,7 @@ class AssessmentListRow extends StatelessWidget {
     final simulated = needsSimulatedTag(context, a.result);
     return Semantics(
       button: true,
+      onTap: onTap,
       label: 'Patient ${a.patientId}, ${m.age} years, ${level.label}${simulated ? ' (simulated)' : ''}, '
           'assessed ${Fmt.relative(a.timestamp)}. Blood pressure ${m.systolic} over ${m.diastolic}.',
       excludeSemantics: true,
@@ -146,27 +140,32 @@ class AssessmentListRow extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 60),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(AppSpacing.md, 10, 8, 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Patient ${a.patientId}', style: AppTextStyles.labelLg),
-                      const SizedBox(height: 2),
-                      Text(
-                        [Fmt.relative(a.timestamp), 'BP ${m.systolic}/${m.diastolic}'].map(keepTogether).join(' · '),
-                        style: AppTextStyles.bodySm.tabular.copyWith(color: AppColors.onSurfaceVariant),
-                      ),
-                      if (simulated) ...[const SizedBox(height: 2), const SimulatedTag()],
-                    ],
-                  ),
-                ),
+            child: LayoutBuilder(builder: (context, bounds) {
+              final details = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Patient ${a.patientId}', style: AppTextStyles.labelLg),
+                const SizedBox(height: 2),
+                Text([Fmt.relative(a.timestamp), 'BP ${m.systolic}/${m.diastolic}'].map(keepTogether).join(' · '),
+                    style: AppTextStyles.bodySm.tabular.copyWith(color: AppColors.onSurfaceVariant)),
+                if (simulated) ...[const SizedBox(height: 2), const SimulatedTag()],
+              ]);
+              if (bounds.maxWidth < 300 || MediaQuery.textScalerOf(context).scale(1) > 1.3) {
+                return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  details,
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    RiskBadge(level: level),
+                    const Spacer(),
+                    const Icon(Icons.chevron_right, size: 22, color: AppColors.outline),
+                  ]),
+                ]);
+              }
+              return Row(children: [
+                Expanded(child: details),
                 const SizedBox(width: 8),
                 RiskBadge(level: level, short: true),
                 const Icon(Icons.chevron_right, size: 22, color: AppColors.outline),
-              ],
-            ),
+              ]);
+            }),
           ),
         ),
       ),

@@ -299,16 +299,42 @@ class ProbabilityBars extends StatelessWidget {
       children: [
         for (final l in RiskLevel.values) ...[
           if (l != RiskLevel.low) const SizedBox(height: 10),
-          _row(l, result.probabilities[l] ?? 0, l == result.riskLevel),
+          _row(context, l, result.probabilities[l] ?? 0, l == result.riskLevel),
         ],
       ],
     );
   }
 
-  Widget _row(RiskLevel l, double p, bool predicted) {
+  Widget _row(BuildContext context, RiskLevel l, double p, bool predicted) {
     final labelStyle = predicted
         ? AppTextStyles.labelLg.copyWith(color: l.textColor)
         : AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant);
+    final track = ClipRRect(
+      borderRadius: BorderRadius.circular(99),
+      child: SizedBox(
+          height: predicted ? 12 : 8,
+          child: Stack(children: [
+            Positioned.fill(child: ColoredBox(color: trackColor)),
+            FractionallySizedBox(
+                widthFactor: p.clamp(0.0, 1.0).toDouble(),
+                heightFactor: 1,
+                child: ColoredBox(color: predicted ? l.color : AppColors.outline.withAlpha(110))),
+          ])),
+    );
+    if (MediaQuery.textScalerOf(context).scale(1) > 1.3) {
+      return Semantics(
+        label: '${l.label}: ${Fmt.percent(p)}${predicted ? ', predicted' : ''}',
+        excludeSemantics: true,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Wrap(alignment: WrapAlignment.spaceBetween, spacing: 12, runSpacing: 4, children: [
+            Text(l.shortLabel, style: labelStyle),
+            Text(Fmt.percent(p), style: labelStyle.tabular),
+          ]),
+          const SizedBox(height: 6),
+          track,
+        ]),
+      );
+    }
     return Semantics(
       label: '${l.label}: ${Fmt.percent(p)}${predicted ? ', predicted' : ''}',
       excludeSemantics: true,
@@ -318,24 +344,7 @@ class ProbabilityBars extends StatelessWidget {
             width: 92,
             child: Text(l.shortLabel, style: labelStyle, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: SizedBox(
-                height: predicted ? 12 : 8,
-                child: Stack(
-                  children: [
-                    Positioned.fill(child: ColoredBox(color: trackColor)),
-                    FractionallySizedBox(
-                      widthFactor: p.clamp(0.0, 1.0).toDouble(),
-                      heightFactor: 1,
-                      child: ColoredBox(color: predicted ? l.color : AppColors.outline.withAlpha(110)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          Expanded(child: track),
           const SizedBox(width: AppSpacing.sm),
           SizedBox(
             width: 44,

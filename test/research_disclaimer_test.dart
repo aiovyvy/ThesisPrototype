@@ -106,9 +106,8 @@ void main() {
             await tester.pumpWidget(const SizedBox.shrink());
             // Scope list-screen geometry to the shared notice. Seeded patient
             // row layouts have separate coverage and are not changed by FR-08.
-            final repository = (name == 'Home' || name == 'Patients')
-                ? PatientRepository(seed: [])
-                : PatientRepository();
+            final repository =
+                (name == 'Home' || name == 'Patients') ? PatientRepository(seed: []) : PatientRepository();
             if (saved) repository.saveAssessment(assessment);
             await tester.pumpWidget(testApp(screen, repository: repository, classifier: classifier));
             await tester.pumpAndSettle();
@@ -123,12 +122,12 @@ void main() {
             checkNotice(tester);
             await revealNotice(tester);
             if (name == 'New result') {
-              expect(find.text('Save to patient record').hitTestable(), findsOneWidget);
+              expect(find.text('Save to session history').hitTestable(), findsOneWidget);
               final notice = tester.getRect(find.byType(ResearchDisclaimer));
               final footer = tester.getRect(find.byKey(const ValueKey('result-actions')));
               expect(notice.bottom, lessThanOrEqualTo(footer.top));
             }
-            if (name == 'Saved result') expect(find.text('Save to patient record'), findsNothing);
+            if (name == 'Saved result') expect(find.text('Save to session history'), findsNothing);
             if (name == 'Assessment') {
               await tester.scrollUntilVisible(find.text(AppStrings.syntheticDataOnly), 200,
                   scrollable: find.byType(Scrollable).first);

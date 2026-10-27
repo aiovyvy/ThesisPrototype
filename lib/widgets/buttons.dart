@@ -52,6 +52,7 @@ class _PrimaryButtonState extends State<PrimaryButton> {
   @override
   Widget build(BuildContext context) {
     final w = widget;
+    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
     final enabled = w.onPressed != null && !w.loading;
     final pressedBg = w.pressedBackground ?? (w.background == AppColors.primary ? AppColors.primaryPressed : null);
     final bg = _pressed && pressedBg != null ? pressedBg : w.background;
@@ -62,6 +63,7 @@ class _PrimaryButtonState extends State<PrimaryButton> {
     return Semantics(
       button: true,
       enabled: enabled,
+      onTap: enabled ? w.onPressed : null,
       label: w.label,
       excludeSemantics: true,
       child: AnimatedScale(
@@ -71,8 +73,8 @@ class _PrimaryButtonState extends State<PrimaryButton> {
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 200),
           opacity: enabled || w.loading ? 1 : 0.45,
-          child: SizedBox(
-            height: w.height,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: w.height),
             child: Material(
               color: bg,
               shape: shape,
@@ -81,6 +83,7 @@ class _PrimaryButtonState extends State<PrimaryButton> {
                 onTap: enabled ? w.onPressed : null,
                 onHighlightChanged: (v) => setState(() => _pressed = v),
                 child: Center(
+                  heightFactor: 1,
                   child: w.loading
                       ? SizedBox(
                           width: 22,
@@ -88,7 +91,7 @@ class _PrimaryButtonState extends State<PrimaryButton> {
                           child: CircularProgressIndicator(strokeWidth: 2.4, color: w.foreground),
                         )
                       : Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: largeText ? 12 : 0),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -99,8 +102,8 @@ class _PrimaryButtonState extends State<PrimaryButton> {
                               Flexible(
                                 child: Text(
                                   w.label,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: largeText ? null : 1,
+                                  overflow: largeText ? TextOverflow.clip : TextOverflow.ellipsis,
                                   style: AppTextStyles.labelLg.copyWith(color: w.foreground, fontSize: 16),
                                 ),
                               ),
@@ -227,6 +230,8 @@ class RoundIconButton extends StatelessWidget {
       child: Semantics(
         button: true,
         label: tooltip,
+        enabled: onPressed != null,
+        onTap: onPressed,
         excludeSemantics: true,
         child: SizedBox(
           width: AppSpacing.minTap,

@@ -31,6 +31,6 @@ class AppStrings {
   static const String demoAccess = 'DEMO ACCESS';
   static const String demoAccessNote =
       'There is no real authentication: any non-empty email and password opens the app. '
-      'Use synthetic records only.';
+      'Use the prefilled demo details. Do not enter real credentials. Use synthetic records only.';
   static const String pendingEvaluation = 'Pending Evaluation';
 }

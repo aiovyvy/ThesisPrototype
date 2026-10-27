@@ -6,16 +6,13 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../data/mock/mock_clinician.dart';
-import '../../data/repositories/app_settings.dart';
 import '../../navigation/app_navigator.dart';
 import '../../navigation/main_shell.dart';
 import '../../navigation/route_session.dart';
-import '../../state/app_scope.dart';
 import '../../widgets/aiovy_logo.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
 import '../../widgets/form_fields.dart';
-import '../../widgets/settings_widgets.dart';
 
 /// Stitch: doctor_login. Prototype login – any non-empty credentials work.
 class LoginScreen extends StatefulWidget implements RestorableWebPage {
@@ -54,20 +51,8 @@ class _LoginScreenState extends State<LoginScreen> {
     AppNavigator.completeSignIn(context, const MainShell());
   }
 
-  void _showInfo(String title, String body) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(title, style: AppTextStyles.headlineSm),
-        content: Text(body, style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant)),
-        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('OK'))],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final settings = AppScope.of(context).settings;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -96,10 +81,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: AppSpacing.xl),
                   Semantics(
                     header: true,
-                    child: Text('Welcome back', style: AppTextStyles.displayLg),
+                    child: Text('Enter the AIOVY demo', style: AppTextStyles.displayLg),
                   ),
                   const SizedBox(height: 6),
-                  Text('Sign in to continue.', style: AppTextStyles.bodyLg.copyWith(color: AppColors.onSurfaceVariant)),
+                  Text('Demo access only. No account is required.',
+                      style: AppTextStyles.bodyLg.copyWith(color: AppColors.onSurfaceVariant)),
                   const SizedBox(height: AppSpacing.lg),
                   // Before the fields: this sign-in checks nothing.
                   const DemoAccessBanner(),
@@ -114,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                   const SizedBox(height: 12),
-                  _card(settings),
+                  _card(),
                   const SizedBox(height: AppSpacing.lg),
                   Text(
                     AppStrings.versionShort,
@@ -130,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _card(AppSettings settings) {
+  Widget _card() {
     return AppCard(
       radius: AppRadius.xl,
       child: Padding(
@@ -141,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const FieldLabel(label: 'Email or clinical ID'),
+                const FieldLabel(label: 'Demo email or ID'),
                 const SizedBox(height: 6),
                 AppTextField(
                   controller: _email,
@@ -149,28 +135,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   icon: Icons.badge_outlined,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  autofillHints: kIsWeb ? null : const [AutofillHints.email, AutofillHints.username],
+                  autofillHints: null,
                   validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter your email or clinical ID' : null,
                 ),
                 const SizedBox(height: AppSpacing.md),
-                FieldLabel(
-                  label: 'Password',
-                  trailing: LinkButton(
-                    label: 'Forgot password?',
-                    style: AppTextStyles.labelSm,
-                    onPressed: () => _showInfo(
-                      'Reset password',
-                      'Password reset is handled by your institution. In this prototype any password works.',
-                    ),
-                  ),
-                ),
+                const FieldLabel(label: 'Demo password'),
                 AppTextField(
                   controller: _password,
                   hint: 'Password',
                   icon: Icons.lock_outline,
                   obscureText: _obscure,
                   textInputAction: TextInputAction.done,
-                  autofillHints: kIsWeb ? null : const [AutofillHints.password],
+                  autofillHints: null,
                   onSubmitted: (_) => _signIn(),
                   validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
                   suffix: IconButton(
@@ -183,31 +159,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                if (!kIsWeb)
-                  MergeSemantics(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Remember this workstation', style: AppTextStyles.labelLg),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Not stored in this prototype',
-                                style: AppTextStyles.labelSm.copyWith(color: AppColors.onSurfaceVariant),
-                              ),
-                            ],
-                          ),
-                        ),
-                        AiovySwitch(
-                          value: settings.rememberWorkstation,
-                          onChanged: (v) => setState(() => settings.rememberWorkstation = v),
-                        ),
-                      ],
-                    ),
-                  ),
-                const SizedBox(height: AppSpacing.lg),
                 PrimaryButton(
                   label: 'Sign in',
                   trailingIcon: Icons.arrow_forward,

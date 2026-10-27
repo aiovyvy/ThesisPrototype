@@ -99,8 +99,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                    'An explainable AI-powered tool designed to assist healthcare professionals in '
-                                    'assessing maternal health risks.',
+                                    'Explore maternal risk classification with synthetic examples. '
+                                    'Research demonstration only; not clinically validated.',
                                     textAlign: TextAlign.center,
                                     style: AppTextStyles.bodyLg.copyWith(color: AppColors.onSurfaceVariant),
                                   ),
@@ -129,7 +129,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                   ),
                                   const SizedBox(height: AppSpacing.md),
                                   Text(
-                                    'Decision support only · Demo access · ${AppStrings.versionShort}',
+                                    'Demo access · Synthetic data only · ${AppStrings.versionShort}',
                                     textAlign: TextAlign.center,
                                     style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(
                                           color: AppColors.outline,

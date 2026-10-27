@@ -164,6 +164,7 @@ class HeaderAvatar extends StatelessWidget {
       child: Semantics(
         button: true,
         label: 'Clinician profile',
+        onTap: () => AppNavigator.openTab(context, ShellTab.profile),
         excludeSemantics: true,
         child: InkResponse(
           onTap: () => AppNavigator.openTab(context, ShellTab.profile),

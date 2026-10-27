@@ -10,7 +10,6 @@ import '../../navigation/app_navigator.dart';
 import '../../state/app_scope.dart';
 import '../../widgets/aiovy_logo.dart';
 import '../../widgets/app_header.dart';
-import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
 import '../../widgets/settings_widgets.dart';
 import '../research/research_demo_screen.dart';
@@ -58,6 +57,7 @@ class SettingsScreen extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
+        scrollable: true,
         icon: const Icon(Icons.gavel, color: AppColors.primary, size: 30),
         title: Text('Clinical Advisory Notice', style: AppTextStyles.headlineSm, textAlign: TextAlign.center),
         content: Column(
@@ -70,10 +70,13 @@ class SettingsScreen extends StatelessWidget {
               'synthetic. Results marked "Simulated" come from a built-in demo classifier, not the trained model.',
               style: AppTextStyles.bodyMd.copyWith(color: AppColors.onSurfaceVariant, height: 1.45),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            PrimaryButton(label: 'Acknowledge & Close', onPressed: () => Navigator.pop(ctx)),
           ],
         ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Acknowledge & Close', textAlign: TextAlign.center))
+        ],
       ),
     );
   }

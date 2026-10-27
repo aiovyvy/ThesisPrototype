@@ -71,6 +71,7 @@ class _NavItem extends StatelessWidget {
       button: true,
       selected: selected,
       label: '$label tab',
+      onTap: onTap,
       excludeSemantics: true,
       child: InkResponse(
         onTap: onTap,

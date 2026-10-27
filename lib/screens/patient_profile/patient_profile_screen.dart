@@ -78,18 +78,6 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
       appBar: AppHeader(
         title: 'Patient ${widget.patientId}',
         style: HeaderStyle.backCentered,
-        actions: [
-          RoundIconButton(
-            icon: Icons.ios_share,
-            tooltip: 'Export or print record',
-            background: Colors.transparent,
-            foreground: AppColors.primary,
-            onPressed: () => AppNavigator.showSnack(
-              'Export and printing are not available in the prototype.',
-              icon: Icons.info_outline,
-            ),
-          ),
-        ],
       ),
       body: AppStateBuilder(builder: (context, scope) {
         final p = scope.repository.byId(widget.patientId);
@@ -280,7 +268,8 @@ class _HistoryRow extends StatelessWidget {
     final prev = previous?.result.riskLevel;
     return Semantics(
       button: true,
-      label: '${Fmt.relative(a.timestamp)}, ${level.label}'
+      onTap: () => AppNavigator.push(context, ResultScreen(assessment: a)),
+      label: '${Fmt.relative(a.timestamp)}, ${level.label}${a.result.isDemo ? ', simulated' : ''}'
           '${prev == null ? '' : (prev == level ? ', same as previous' : ', previously ${prev.label}')}. '
           '$vitals. ${a.type} by ${a.assessedBy}. Open result and explanation.',
       excludeSemantics: true,

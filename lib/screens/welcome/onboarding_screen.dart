@@ -43,7 +43,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     (
       'See what drove each estimate',
-      'Explainable AI (SHAP) shows which measurements supported the estimate and which counted against it.',
+      'In API mode, SHAP shows which inputs supported or opposed the model estimate. '
+          'Simulated mode shows heuristic demo scores, not real SHAP. Neither explains medical causes.',
     ),
     (
       'Support, not a substitute',

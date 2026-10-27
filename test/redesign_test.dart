@@ -125,11 +125,12 @@ void main() {
       expect(find.text('Supports High Risk'), findsOneWidget);
       expect(find.text('Demo output · Pending thesis evaluation'), findsNothing);
 
-      await tester.ensureVisible(find.text('Save to patient record'));
-      await tester.tap(find.text('Save to patient record'));
+      await tester.ensureVisible(find.text('Save to session history'));
+      await tester.tap(find.text('Save to session history'));
       await tester.pumpAndSettle();
       expect(repo.byId(id)?.latest?.result.riskLevel, RiskLevel.high);
       expect(find.byType(PatientProfileScreen), findsOneWidget);
+      expect(find.text('Saved to session history for $id. View history below.'), findsOneWidget);
     });
   });
 

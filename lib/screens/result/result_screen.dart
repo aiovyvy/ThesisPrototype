@@ -43,7 +43,7 @@ class ResultScreen extends StatelessWidget implements TemporaryWebPage {
     final nav = Navigator.of(context);
     nav.popUntil((r) => r.isFirst);
     nav.push(AppNavigator.route(PatientProfileScreen(patientId: assessment.patientId)));
-    AppNavigator.showSnack('Assessment saved to ${assessment.patientId}\'s record');
+    AppNavigator.showSnack('Saved to session history for ${assessment.patientId}. View history below.');
   }
 
   Future<void> _assessAnother(BuildContext context) async {
@@ -210,7 +210,7 @@ class _ResultActions extends StatelessWidget {
           textStyle: AppTextStyles.labelLg.copyWith(fontSize: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md + 2)),
         ),
-        child: const Text('Save to patient record', textAlign: TextAlign.center),
+        child: const Text('Save to session history', textAlign: TextAlign.center),
       ),
     );
   }

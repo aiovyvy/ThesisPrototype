@@ -225,7 +225,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(provider.value.uri.path, '/result');
       expect(tester.widget<ResultScreen>(find.byType(ResultScreen)).assessment, same(unsaved));
-      await tester.tap(find.text('Save to patient record'));
+      await tester.tap(find.text('Save to session history'));
       await tester.pumpAndSettle();
       expect(find.byType(PatientProfileScreen), findsOneWidget);
       expect(provider.value.uri.path, '/patient-details');
@@ -239,7 +239,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(provider.value.uri.path, '/result');
       expect(find.text('Saved result'), findsOneWidget);
-      expect(find.text('Save to patient record'), findsNothing);
+      expect(find.text('Save to session history'), findsNothing);
       await tester.scrollUntilVisible(find.byType(ExplanationButton), 200,
           scrollable: find.descendant(of: find.byType(ResultScreen), matching: find.byType(Scrollable)).first);
       await Scrollable.ensureVisible(tester.element(find.byType(ExplanationButton)), alignment: 0.5);

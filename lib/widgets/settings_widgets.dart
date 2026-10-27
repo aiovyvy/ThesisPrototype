@@ -53,14 +53,15 @@ class SettingsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final stacked = trailing != null && MediaQuery.textScalerOf(context).scale(1) > 1.3;
     return InkWell(
       onTap: onTap,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 64),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12),
-          child: Row(
-            children: [
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
               IconTile(
                 icon: icon,
                 size: 40,
@@ -83,13 +84,14 @@ class SettingsRow extends StatelessWidget {
                   ],
                 ),
               ),
-              if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+              if (trailing != null && !stacked) ...[const SizedBox(width: 8), trailing!],
               if (showChevron) ...[
                 const SizedBox(width: 4),
                 const Icon(Icons.chevron_right, color: AppColors.onSurfaceVariant),
               ],
-            ],
-          ),
+            ]),
+            if (stacked) ...[const SizedBox(height: 8), Align(alignment: Alignment.centerLeft, child: trailing!)],
+          ]),
         ),
       ),
     );
@@ -129,6 +131,7 @@ class SegmentedToggle<T> extends StatelessWidget {
                 button: true,
                 selected: o == selected,
                 label: labelOf(o),
+                onTap: () => onChanged(o),
                 excludeSemantics: true,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,

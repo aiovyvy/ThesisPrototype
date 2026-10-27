@@ -53,6 +53,9 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.md),
               const PredictionModeNote(),
+              Text('Choose New assessment to enter synthetic values. Find saved session assessments under Patients.',
+                  style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
+              const SizedBox(height: AppSpacing.sm),
               _StartAssessment(onTap: () => AppNavigator.push(context, const AssessmentInputScreen())),
               const SizedBox(height: AppSpacing.lg),
               SectionTitle(
@@ -122,6 +125,7 @@ class _StartAssessmentState extends State<_StartAssessment> {
     return Semantics(
       button: true,
       label: 'New assessment. Enter six maternal indicators to get a risk classification.',
+      onTap: widget.onTap,
       excludeSemantics: true,
       child: AnimatedScale(
         scale: _pressed ? 0.985 : 1,

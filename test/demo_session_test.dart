@@ -400,14 +400,14 @@ void main() {
             await tester.pumpAndSettle();
             expect(tester.getRect(find.byKey(const ValueKey('result-disclaimer'))).top,
                 greaterThanOrEqualTo(viewport.top - 1));
-            expect(find.text('Save to patient record').hitTestable(), findsOneWidget);
+            expect(find.text('Save to session history').hitTestable(), findsOneWidget);
             position.jumpTo(position.maxScrollExtent);
             await tester.pumpAndSettle();
           }
           expect(notice.bottom, lessThanOrEqualTo(footer.top));
           expect(notice.bottom, lessThanOrEqualTo(viewport.bottom));
-          expect(find.text('Save to patient record').hitTestable(), findsOneWidget);
-          expect(tester.renderObject<RenderParagraph>(find.text('Save to patient record')).didExceedMaxLines, isFalse);
+          expect(find.text('Save to session history').hitTestable(), findsOneWidget);
+          expect(tester.renderObject<RenderParagraph>(find.text('Save to session history')).didExceedMaxLines, isFalse);
           await tester.scrollUntilVisible(find.text('Discard and assess another patient'), -150, scrollable: scroll);
           expect(
               tester.renderObject<RenderParagraph>(find.text('Discard and assess another patient')).didExceedMaxLines,

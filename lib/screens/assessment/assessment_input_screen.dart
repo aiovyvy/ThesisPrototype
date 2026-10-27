@@ -421,6 +421,24 @@ class _AssessBar extends StatelessWidget {
             ? 'Check the highlighted values'
             : '$validCount of $total values entered';
 
+    final status = Text(statusText,
+        style: AppTextStyles.labelSm
+            .copyWith(color: ready ? AppColors.sageText : (error ? AppColors.error : AppColors.onSurfaceVariant)));
+    final meter = Row(children: [
+      for (var i = 0; i < total; i++) ...[
+        if (i > 0) const SizedBox(width: 4),
+        Expanded(
+            child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: 4,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(99),
+              color: statuses[i] == FieldStatus.valid
+                  ? AppColors.sage
+                  : (showErrors ? AppColors.error.withAlpha(110) : AppColors.surfaceHigh)),
+        )),
+      ],
+    ]);
     return StickyActionBar(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -433,32 +451,11 @@ class _AssessBar extends StatelessWidget {
                   ? 'All $total values valid. Ready to assess.'
                   : '$validCount of $total values valid.${error ? ' Check the highlighted values.' : ''}',
               excludeSemantics: true,
-              child: Row(
-                children: [
-                  for (var i = 0; i < total; i++) ...[
-                    if (i > 0) const SizedBox(width: 4),
-                    Expanded(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        height: 4,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(99),
-                          color: statuses[i] == FieldStatus.valid
-                              ? AppColors.sage
-                              : (showErrors ? AppColors.error.withAlpha(110) : AppColors.surfaceHigh),
-                        ),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(width: 12),
-                  Text(
-                    statusText,
-                    style: AppTextStyles.labelSm.copyWith(
-                      color: ready ? AppColors.sageText : (error ? AppColors.error : AppColors.onSurfaceVariant),
-                    ),
-                  ),
-                ],
-              ),
+              child: MediaQuery.textScalerOf(context).scale(1) > 1.3
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [meter, const SizedBox(height: 8), status])
+                  : Row(children: [Expanded(child: meter), const SizedBox(width: 12), status]),
             ),
             const SizedBox(height: 10),
           ],

@@ -93,7 +93,7 @@ class IndicatorFieldRow extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, c) {
-        if (c.maxWidth < 260) {
+        if (c.maxWidth < 260 || MediaQuery.textScalerOf(context).scale(1) > 1.3) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [label, const SizedBox(height: 8), _NumberInput(data: data)],
@@ -136,7 +136,7 @@ class BloodPressureFields extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, c) {
-        if (c.maxWidth < 280) {
+        if (c.maxWidth < 280 || MediaQuery.textScalerOf(context).scale(1) > 1.3) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [_column(systolic), const SizedBox(height: AppSpacing.md), _column(diastolic)],
@@ -230,7 +230,10 @@ class _NumberInput extends StatelessWidget {
     return Semantics(
       label: '${fieldLabel(data.indicator)}${hint != null ? ', $hint' : ''}, ${spec.unit}, expected ${spec.rangeText}',
       child: SizedBox(
-        height: AppSpacing.inputHeight,
+        height:
+            (MediaQuery.textScalerOf(context).scale(AppTextStyles.metric.fontSize!) * AppTextStyles.metric.height! + 28)
+                .clamp(AppSpacing.inputHeight, double.infinity)
+                .toDouble(),
         child: TextField(
           controller: data.controller,
           focusNode: data.focusNode,
