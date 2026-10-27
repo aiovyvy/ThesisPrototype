@@ -19,6 +19,7 @@ import '../../widgets/aiovy_logo.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
+import '../../widgets/research_disclaimer.dart';
 import '../result/result_screen.dart';
 
 /// Runs the classifier, then replaces itself with the result.
@@ -166,6 +167,8 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
     return ListView(
       padding: AppLayout.page(context, top: AppSpacing.xl, bottom: AppSpacing.lg),
       children: [
+        const ResearchDisclaimer(),
+        const SizedBox(height: AppSpacing.md),
         Center(child: _Spinner(done: done)),
         const SizedBox(height: AppSpacing.lg),
         Semantics(
@@ -226,6 +229,8 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
     return ListView(
       padding: AppLayout.page(context, top: AppSpacing.xl, bottom: AppSpacing.lg),
       children: [
+        const ResearchDisclaimer(),
+        const SizedBox(height: AppSpacing.md),
         const Center(
           child: IconTile(
             icon: Icons.cloud_off_outlined,

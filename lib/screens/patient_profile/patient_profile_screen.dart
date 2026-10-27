@@ -15,6 +15,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
 import '../../widgets/patient_widgets.dart';
+import '../../widgets/research_disclaimer.dart';
 import '../assessment/assessment_input_screen.dart';
 import '../result/result_screen.dart';
 
@@ -93,10 +94,11 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
       body: AppStateBuilder(builder: (context, scope) {
         final p = scope.repository.byId(widget.patientId);
         if (p == null) {
-          return Center(
-              child: Padding(
+          return ListView(
             padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
+            children: [
+              const ResearchDisclaimer(),
+              const SizedBox(height: AppSpacing.md),
               Text('Record unavailable', style: AppTextStyles.titleMd),
               const SizedBox(height: AppSpacing.sm),
               const Text(
@@ -105,8 +107,8 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
               const SizedBox(height: AppSpacing.md),
               PrimaryButton(
                   label: 'Return to Patients', onPressed: () => AppNavigator.openTab(context, ShellTab.patients)),
-            ]),
-          ));
+            ],
+          );
         }
         final s = scope.settings;
         final history =
@@ -115,6 +117,8 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
         return ListView(
           padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.xl),
           children: [
+            const ResearchDisclaimer(),
+            const SizedBox(height: AppSpacing.md),
             _StatusCard(patient: p, settings: s),
             const SizedBox(height: AppSpacing.md),
             PrimaryButton(

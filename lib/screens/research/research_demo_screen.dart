@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../services/research_demo_client.dart';
 import '../../widgets/app_header.dart';
+import '../../widgets/research_disclaimer.dart';
 
 /// Public fixed examples only. No repository, assessment or session dependency.
 class ResearchDemoScreen extends StatefulWidget {
@@ -81,6 +82,8 @@ class _ResearchDemoScreenState extends State<ResearchDemoScreen> {
                 child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(side, 24, side, 32),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                const ResearchDisclaimer(),
+                const SizedBox(height: 16),
                 Text('Explore the model, one example at a time', style: AppTextStyles.headlineMd),
                 const SizedBox(height: 8),
                 const Text('Six fixed held-out records show both correct and incorrect predictions. '
@@ -143,8 +146,6 @@ class _ResearchDemoScreenState extends State<ResearchDemoScreen> {
   Widget _warnings(double side, bool wide) {
     final purpose = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text('Experimental research model', style: AppTextStyles.labelLg.copyWith(color: AppColors.primaryDark)),
-      const SizedBox(height: 3),
-      const Text('Demonstration only. Must not be used for clinical decisions.'),
     ]);
     final units = Text('Glucose: provisionally mmol/L. Source unit labels conflict; values are unchanged.',
         style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant));

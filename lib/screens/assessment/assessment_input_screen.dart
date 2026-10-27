@@ -15,6 +15,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
 import '../../widgets/dialogs.dart';
+import '../../widgets/research_disclaimer.dart';
 import '../processing/processing_screen.dart';
 import 'indicator_input_card.dart';
 import 'indicator_spec.dart';
@@ -258,6 +259,8 @@ class _AssessmentInputScreenState extends State<AssessmentInputScreen> {
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.lg),
                     children: [
+                      const ResearchDisclaimer(),
+                      const SizedBox(height: AppSpacing.md),
                       _PatientStrip(patientId: _patientId, isNew: _isNewPatient, action: formAction),
                       const SizedBox(height: 10),
                       // The one place real patient data could be typed in.

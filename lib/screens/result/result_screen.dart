@@ -16,6 +16,7 @@ import '../../widgets/common.dart';
 import '../../widgets/dialogs.dart';
 import '../../widgets/explanation_widgets.dart';
 import '../../widgets/patient_widgets.dart';
+import '../../widgets/research_disclaimer.dart';
 import '../assessment/assessment_input_screen.dart';
 import '../patient_profile/patient_profile_screen.dart';
 import '../shap/shap_screen.dart';
@@ -165,29 +166,17 @@ class ResultScreen extends StatelessWidget implements TemporaryWebPage {
                     ),
                     const SizedBox(height: AppSpacing.md),
                   ],
-                  // 5. The decision-support notice, once, next to the save action
-                  Padding(
-                    key: const ValueKey('result-disclaimer'),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.only(top: 2),
-                          child: Icon(Icons.info_outline, size: 16, color: AppColors.outline),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            r.isDemo
-                                ? 'Simulated by the built-in demo classifier, not the trained model. '
-                                    '${AppStrings.decisionNotice}'
-                                : 'Estimated by ${r.modelName}. ${AppStrings.decisionNotice}',
-                            style: AppTextStyles.labelSm.weight(FontWeight.w500).copyWith(color: AppColors.outline),
-                          ),
-                        ),
-                      ],
-                    ),
+                  Text(
+                    r.isDemo
+                        ? 'Simulated by the built-in demo classifier, not the trained model.'
+                        : 'Estimated by ${r.modelName}.',
+                    style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  // The research notice remains within the measured viewport,
+                  // above the sticky Save action, including at enlarged text.
+                  const ResearchDisclaimer(
+                    key: ValueKey('result-disclaimer'),
                   ),
                 ],
               )),

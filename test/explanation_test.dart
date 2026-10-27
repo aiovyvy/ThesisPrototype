@@ -116,6 +116,8 @@ void main() {
         setScreen(tester, size, textScale: 2);
         final r = result(level, [0, -0.4, 0.000001, 0.3, -0.02, 0.1]);
         await tester.pumpWidget(testApp(ShapScreen(assessment: assessment(r))));
+        await tester.scrollUntilVisible(find.text(level.label), 150,
+            scrollable: find.byType(Scrollable).first);
         expect(find.text(level.label), findsOneWidget);
         expect(find.textContaining('70% probability'), findsOneWidget);
         await tester.scrollUntilVisible(find.textContaining('142 mmHg'), 150,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:aiovy/core/constants/app_strings.dart';
 
 import 'package:aiovy/data/repositories/app_settings.dart';
 import 'package:aiovy/data/repositories/patient_repository.dart';
@@ -109,7 +110,7 @@ void main() {
         repository: repository, settings: settings, classifier: classifier, boundaryKey: boundary));
     await tester.pumpAndSettle();
     expect(find.text('Experimental research model'), findsOneWidget);
-    expect(find.text('Demonstration only. Must not be used for clinical decisions.'), findsOneWidget);
+    expect(find.text(AppStrings.researchDisclaimer), findsOneWidget);
     expect(find.byType(TextField), findsNothing);
     expect(find.byType(TextFormField), findsNothing);
     expect(find.text('Dataset label'), findsOneWidget);

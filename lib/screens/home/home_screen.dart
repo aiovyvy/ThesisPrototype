@@ -11,6 +11,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
 import '../../widgets/patient_widgets.dart';
+import '../../widgets/research_disclaimer.dart';
 import '../assessment/assessment_input_screen.dart';
 import '../patient_profile/patient_profile_screen.dart';
 
@@ -38,6 +39,8 @@ class HomeScreen extends StatelessWidget {
           return ListView(
             padding: AppLayout.page(context, top: 20, bottom: AppSpacing.xl),
             children: [
+              const ResearchDisclaimer(),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 '${Fmt.greeting(now)}, ${scope.clinician.displayName}',
                 style: AppTextStyles.headlineMd,

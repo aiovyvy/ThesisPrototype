@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:aiovy/core/constants/app_strings.dart';
 
 import 'package:aiovy/data/research_overview.dart';
 import 'package:aiovy/screens/research/research_screen.dart';
@@ -86,7 +87,7 @@ void main() {
       expect(text, contains('Only Random Forest is integrated'));
       expect(text, contains('not clinically verified outcomes'));
       expect(text, contains('not medical causation'));
-      expect(text, contains('not a clinically approved diagnostic system'));
+      expect(text, contains(AppStrings.researchDisclaimer));
       expect(text, contains('without converting glucose'));
       expect(text, contains('not a representative evaluation sample'));
       expect(text, contains('no measurement entry or save-to-history option'));

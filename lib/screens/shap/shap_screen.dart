@@ -14,6 +14,7 @@ import '../../widgets/app_header.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
 import '../../widgets/explanation_widgets.dart';
+import '../../widgets/research_disclaimer.dart';
 import '../research/research_screen.dart';
 
 /// Deterministic explanations of the supplied prediction, with no clinical
@@ -41,6 +42,8 @@ class ShapScreen extends StatelessWidget implements TemporaryWebPage {
           return ListView(
             padding: AppLayout.page(context, top: AppSpacing.md, bottom: AppSpacing.xl),
             children: [
+              const ResearchDisclaimer(),
+              const SizedBox(height: AppSpacing.md),
               Semantics(
                 header: true,
                 child: Text('Why did AI predict this?', style: AppTextStyles.headlineMd),

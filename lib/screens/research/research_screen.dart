@@ -8,6 +8,7 @@ import '../../models/research.dart';
 import '../../navigation/route_session.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/common.dart';
+import '../../widgets/research_disclaimer.dart';
 
 /// Describes the working prototype; does not run inference or access records.
 class ResearchScreen extends StatelessWidget implements RestorableWebPage {
@@ -30,14 +31,11 @@ class ResearchScreen extends StatelessWidget implements RestorableWebPage {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const InfoNote(
-                  title: 'Research prototype',
-                  text: 'AIOVY is not a clinically approved diagnostic system. Use synthetic inputs for assessments '
-                      'and the fixed public research examples for demonstration only. Do not use outputs for clinical decisions.',
-                  icon: Icons.science_outlined,
-                  circleIcon: false,
-                  background: AppColors.brandTint,
-                ),
+                const ResearchDisclaimer(),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                    'Use synthetic inputs for assessments and the fixed public research examples for demonstration only.',
+                    style: AppTextStyles.bodySm.copyWith(color: AppColors.onSurfaceVariant)),
                 const SizedBox(height: AppSpacing.md),
                 const _InformationCard(
                   title: 'Two separate Random Forest workflows',

@@ -12,6 +12,7 @@ import '../../widgets/buttons.dart';
 import '../../widgets/common.dart';
 import '../../widgets/patient_widgets.dart';
 import '../../widgets/risk_badge.dart';
+import '../../widgets/research_disclaimer.dart';
 import '../patient_profile/patient_profile_screen.dart';
 
 /// Stitch: patients_list
@@ -62,6 +63,8 @@ class _PatientsScreenState extends State<PatientsScreen> {
             SliverPadding(
               padding: AppLayout.page(context, top: AppSpacing.md, bottom: 0),
               sliver: SliverList.list(children: [
+                const ResearchDisclaimer(),
+                const SizedBox(height: AppSpacing.md),
                 const PredictionModeNote(),
                 TextField(
                   controller: _search,

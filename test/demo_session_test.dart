@@ -389,7 +389,21 @@ void main() {
           final notice = tester.getRect(find.byKey(const ValueKey('result-disclaimer')));
           final footer = tester.getRect(find.byKey(const ValueKey('result-actions')));
           final viewport = tester.getRect(scroll);
-          expect(notice.top, greaterThanOrEqualTo(viewport.top));
+          if (notice.height <= viewport.height - 16) {
+            expect(notice.top, greaterThanOrEqualTo(viewport.top));
+          } else {
+            // The longer 14px FR-08 notice can exceed a short web viewport
+            // with the demo banner at 200%. Its start and end must both be
+            // reachable by scrolling, without moving the sticky Save footer.
+            await Scrollable.ensureVisible(tester.element(find.byKey(const ValueKey('result-disclaimer'))),
+                alignment: 0);
+            await tester.pumpAndSettle();
+            expect(tester.getRect(find.byKey(const ValueKey('result-disclaimer'))).top,
+                greaterThanOrEqualTo(viewport.top - 1));
+            expect(find.text('Save to patient record').hitTestable(), findsOneWidget);
+            position.jumpTo(position.maxScrollExtent);
+            await tester.pumpAndSettle();
+          }
           expect(notice.bottom, lessThanOrEqualTo(footer.top));
           expect(notice.bottom, lessThanOrEqualTo(viewport.bottom));
           expect(find.text('Save to patient record').hitTestable(), findsOneWidget);

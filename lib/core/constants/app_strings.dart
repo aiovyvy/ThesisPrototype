@@ -12,6 +12,9 @@ class AppStrings {
   static const String decisionNotice = 'AIOVY provides machine-learning decision support and does not replace '
       'professional clinical judgment or comprehensive diagnostic evaluation.';
 
+  static const String researchDisclaimer = 'Research demonstration only. Not clinically validated. '
+      'Does not replace professional clinical judgment. Do not use for clinical decisions.';
+
   /// Shown on every result produced by the built-in demo classifier.
   static const String demoOutputTag = 'Simulated · demo classifier, not the trained model';
 
